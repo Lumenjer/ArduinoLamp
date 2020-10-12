@@ -1,4 +1,17 @@
-// ================================= ЭФФЕКТЫ ====================================
+// ================================= ЭФФЕКТЫ =====================================
+// --------------------------------- конфетти ------------------------------------
+#define FADE_OUT_SPEED        (70U)                         // скорость затухания
+//--------------------------Шторм,Метель------------------------------------------
+#define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
+#define e_TAIL_STEP (127U) // длина хвоста
+//-------------------Светлячки со шлейфом-----------------------------------------
+#define BALLS_AMOUNT          (3U)     // количество "шариков"
+#define CLEAR_PATH            (1U)     // очищать путь
+#define TRACK_STEP            (70U)    // длина хвоста шарика (чем больше цифра, тем хвост короче)
+int16_t coord[BALLS_AMOUNT][2U];
+int8_t vector[BALLS_AMOUNT][2U];
+CRGB ballColors[BALLS_AMOUNT];
+//===================Коды эффектов==============================================
 uint8_t wrapX(int8_t x){
   return (x + WIDTH)%WIDTH;
 }
@@ -16,38 +29,8 @@ byte hue, hue2;
 // палитра для типа реалистичного водопада (если ползунок Масштаб выставить на 100)
 extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
 CRGB _pulse_color;
-void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
-{
-  blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
-}
 
-void dimAll(uint8_t value) { 
-    fadeToBlackBy (leds, NUM_LEDS, 255U - value);}
-
-
-void shiftDown(){
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = 0; y < HEIGHT - 1; y++) {
-      drawPixelXY(x, y, getPixColorXY(x, y + 1));
-    }}}
-void shiftUp() {
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = HEIGHT; y > 0; y--) {
-      drawPixelXY(x, y,getPixColorXY(x, y - 1));
-    }
-  }
-}   
-void shiftDiag(){
-  for (int8_t y = 0U; y < HEIGHT - 1U; y++)
-  {
-    for (int8_t x = 0; x < WIDTH; x++)
-    {
-      drawPixelXY(wrapX(x + 1U), y, getPixColorXY(x, y + 1U));
-    }
-  }     
-}
 // --------------------------------- конфетти ------------------------------------
-#define FADE_OUT_SPEED        (70U)                         // скорость затухания
 void sparklesRoutine()
 {
   for (uint8_t i = 0; i < modes[currentMode].Scale; i++)
@@ -275,35 +258,31 @@ void stormRoutine()
   }
 }
 //-------------------------Блуждающий кубик-----------------------
-//#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке//Зачем?
 int16_t coordB[2U];
 int8_t vectorB[2U];
 CRGB ballColor;
-//int8_t deltaValue; //ballSize;
 
 void ballRoutine()
 {
   if (loadingFlag)
   {
     loadingFlag = false;
-    //memset8( leds, 0, NUM_LEDS * 3);
-
+  
+  if (modes[currentMode].Scale <= 85) 
+    deltaValue = map(modes[currentMode].Scale, 1, 85, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
+  else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
+    deltaValue = map(modes[currentMode].Scale, 170, 86, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
+  else
+    deltaValue = map(modes[currentMode].Scale, 171, 255, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
+    
     for (uint8_t i = 0U; i < 2U; i++)
     {
       coordB[i] = WIDTH / 2 * 10;
       vectorB[i] = random(8, 20);
     }
-    deltaValue = map(modes[currentMode].Scale * 2.55, 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
     ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-//    _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
   }
 
-//  if (!(modes[currentMode].Scale & 0x01))
-//  {
-//    hue += (modes[currentMode].Scale - 1U) % 11U * 8U + 1U;
-
-//    ballColor = CHSV(hue, 255U, 255U);
-//  }
  
   if ((modes[currentMode].Scale & 0x01))
     for (uint8_t i = 0U; i < deltaValue; i++)
@@ -317,30 +296,32 @@ void ballRoutine()
     {
       coordB[i] = 0;
       vectorB[i] = -vectorB[i];
-      /*if (RANDOM_COLOR)*/ ballColor = CHSV(random(0, 9) * 28, 255U, 255U); // if (RANDOM_COLOR && (modes[currentMode].Scale & 0x01))
-      //vectorB[i] += random(0, 6) - 3;
+       ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+ 
     }
   }
   if (coordB[0U] > (int16_t)((WIDTH - deltaValue) * 10))
   {
     coordB[0U] = (WIDTH - deltaValue) * 10;
     vectorB[0U] = -vectorB[0U];
-    /*if (RANDOM_COLOR)*/ ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-    //vectorB[0] += random(0, 6) - 3;
+    ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+
   }
   if (coordB[1U] > (int16_t)((HEIGHT - deltaValue) * 10))
   {
     coordB[1U] = (HEIGHT - deltaValue) * 10;
     vectorB[1U] = -vectorB[1U];
-    /*if (RANDOM_COLOR)*/ ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-    //vectorB[1] += random(0, 6) - 3;
+      ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+
   }
   
-//  if (modes[currentMode].Scale & 0x01)
-//    dimAll(135U);
-//    dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);
-//  else
+if (modes[currentMode].Scale <= 85)  // при масштабе до 85 выводим кубик без шлейфа
     memset8( leds, 0, NUM_LEDS * 3);
+  else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
+    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) /255) + 30); // выводим кубик со шлейфом, длинна которого зависит от скорости.
+  else
+    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) /255) + 15); // выводим кубик с длинным шлейфом, длинна которого зависит от скорости.
+
      
   for (uint8_t i = 0U; i < deltaValue; i++)
     for (uint8_t j = 0U; j < deltaValue; j++)
@@ -348,12 +329,6 @@ void ballRoutine()
 }
 
 //-------------------Светлячки со шлейфом----------------------------
-#define BALLS_AMOUNT          (3U)                          // количество "шариков"
-#define CLEAR_PATH            (1U)                          // очищать путь
-#define TRACK_STEP            (70U)                         // длина хвоста шарика (чем больше цифра, тем хвост короче)
-int16_t coord[BALLS_AMOUNT][2U];
-int8_t vector[BALLS_AMOUNT][2U];
-CRGB ballColors[BALLS_AMOUNT];
 void ballsRoutine()
 {
   if (loadingFlag)
