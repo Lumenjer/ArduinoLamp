@@ -24,7 +24,7 @@ unsigned char matrixValue[8][16];
 
 void setup() {
   // ЛЕНТА
-  FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS)/*.setCorrection( TypicalLEDStrip )*/;
+  FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(0xFFB0F0);
   FastLED.setBrightness(BRIGHTNESS);
   if (CURRENT_LIMIT > 0) FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT);
   memset8( leds, 0, NUM_LEDS * 3);
