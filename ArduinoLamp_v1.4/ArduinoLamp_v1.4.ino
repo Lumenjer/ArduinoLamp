@@ -2,7 +2,7 @@
   Скетч к проекту "Многофункциональный RGB светильник"
   Страница проекта (схемы, описания): https://alexgyver.ru/GyverLamp/
   Нравится, как написан код? Поддержи автора! https://alexgyver.ru/support_alex/
-  Автор: AlexGyver, AlexGyver Technologies, 2019(Портировал на Ардуино Norovl(+ эффекты, демо от stepko365) 
+  Автор: AlexGyver, AlexGyver Technologies, 2019(Портировал на Ардуино Norovl(+ эффекты, демо от stepko365)
   https://AlexGyver.ru/
 */
 // ---------------- БИБЛИОТЕКИ -----------------
@@ -13,12 +13,17 @@
 #include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
-struct { byte Brightness = 10; byte Speed = 30; byte Scale = 10; } modes[MODE_AMOUNT]; //настройки эффекта по умолчанию
+struct {
+  byte Brightness = 10;
+  byte Speed = 30;
+  byte Scale = 10;
+} modes[MODE_AMOUNT]; //настройки эффекта по умолчанию
 int8_t currentMode = 10;
 boolean loadingFlag = true;
 boolean ONflag = true;
 byte numHold;
 unsigned long numHold_Timer = 0;
+unsigned long userTimer = 0UL;
 unsigned char matrixValue[8][16];
 
 
@@ -29,7 +34,10 @@ void setup() {
   if (CURRENT_LIMIT > 0) FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT);
   memset8( leds, 0, NUM_LEDS * 3);
   FastLED.show();
-
+#ifdef DEBUG
+  Serial.begin(9600);
+  Serial.println();
+#endif
   touch.setStepTimeout(100);
   touch.setClickTimeout(500);
 
@@ -50,5 +58,4 @@ void setup() {
 void loop() {
   effectsTick();
   buttonTick();
-  demoTick();
 }

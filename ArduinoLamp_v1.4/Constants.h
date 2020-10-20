@@ -18,15 +18,16 @@
 
 // ============= ДЛЯ РАЗРАБОТЧИКОВ =============
 #define LED_PIN 6             // пин ленты
-#define BTN_PIN 2
-#define MODE_AMOUNT 27       //кол-во эффектов
+#define BTN_PIN 2             // пин кнопки
+#define MODE_AMOUNT 27        //кол-во эффектов
 #define NUM_LEDS WIDTH * HEIGHT
-#define SEGMENTS 1            // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
-#define ROTATION 1            //поворот индикатора уровней
+#define SEGMENTS 1             // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
+#define INDICATOR              // Индикатор(Плохи на малых матрицах)(Не нужен, коментируйте)
+#define RANDOM_DEMO 1          // 0,1 - включить рандомный выбор режима
+#define DEMOTIME 5             // в секундах // время задержки между эффектами
+//#define DEBUG                // Дебаг(Нужен, расскоментируйте)
 // ------------------- ТИПЫ --------------------
 CRGB leds[NUM_LEDS];
 GButton touch(BTN_PIN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL
-#define RANDOM_DEMO 1                         // 0,1 - включить рандомный выбор режима
-#define  DEMOTIMELIMIT ( 1 * 20UL * 1000UL)   //  минуты/секунды/милисекунды время задержка между эффектами
-uint32_t DemTimer = 0UL;                      // тут будет храниться время следующего переключения эффекта
-bool isDemo = false;   
+
+bool isDemo = false;

@@ -2,8 +2,8 @@
 // --------------------------------- конфетти ------------------------------------
 #define FADE_OUT_SPEED        (70U)                         // скорость затухания
 //--------------------------Шторм,Метель------------------------------------------
-#define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
-#define e_TAIL_STEP (127U) // длина хвоста
+#define SNOW_DENSE (32U) // плотность снега - меньше = плотнее
+#define TAIL_STEP (127U) // длина хвоста
 //-------------------Светлячки со шлейфом-----------------------------------------
 #define BALLS_AMOUNT          (3U)     // количество "шариков"
 #define CLEAR_PATH            (1U)     // очищать путь
@@ -29,6 +29,10 @@ byte hue, hue2;
 // палитра для типа реалистичного водопада (если ползунок Масштаб выставить на 100)
 extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
 CRGB _pulse_color;
+void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
+{
+  blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
+}
 
 // --------------------------------- конфетти ------------------------------------
 void sparklesRoutine()
@@ -223,40 +227,39 @@ void whiteLampRoutine()
 }
 
 //--------------------------Шторм,Метель-------------------------
-#define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
-#define e_TAIL_STEP (127U) // длина хвоста
-void stormRoutine()
-{
-  // заполняем головами комет
-  uint8_t Saturation = 0U;    // цвет хвостов
-
-    Saturation = modes[currentMode].Scale * 2.55;
-  for (int8_t x = 0U; x < WIDTH - 1U; x++) // fix error i != 0U
-  {
-    if (!random8(e_sns_DENSE) &&
-        !getPixColorXY(wrapX(x), HEIGHT - 1U) &&
-        !getPixColorXY(wrapX(x + 1U), HEIGHT - 1U) &&
-        !getPixColorXY(wrapX(x - 1U), HEIGHT - 1U))
-    {
-      drawPixelXY(x, HEIGHT - 1U, CHSV(random8(), Saturation, random8(64U, 255U)));
-    }
+void stormRoutine() {
+  // заполняем головами комет левую и верхнюю линию
+  for (byte i = HEIGHT / 2; i < HEIGHT; i++) {
+    if (getPixColorXY(0, i) == 0
+        && (random(0, SNOW_DENSE) == 0)
+        && getPixColorXY(0, i + 1) == 0
+        && getPixColorXY(0, i - 1) == 0)
+      leds[getPixelNumber(0, i)] = CHSV(random(0, 200), modes[currentMode].Scale, 255);
+  }
+  for (byte i = 0; i < WIDTH / 2; i++) {
+    if (getPixColorXY(i, HEIGHT - 1) == 0
+        && (random(0, SNOW_DENSE) == 0)
+        && getPixColorXY(i + 1, HEIGHT - 1) == 0
+        && getPixColorXY(i - 1, HEIGHT - 1) == 0)
+      leds[getPixelNumber(i, HEIGHT - 1)] = CHSV(random(0, 200), modes[currentMode].Scale, 255);
   }
 
   // сдвигаем по диагонали
-  for (int8_t y = 0U; y < HEIGHT - 1U; y++)
-  {
-    for (int8_t x = 0; x < WIDTH; x++)
-    {
-      drawPixelXY(wrapX(x + 1U), y, getPixColorXY(x, y + 1U));
+  for (byte y = 0; y < HEIGHT - 1; y++) {
+    for (byte x = WIDTH - 1; x > 0; x--) {
+      drawPixelXY(x, y, getPixColorXY(x - 1, y + 1));
     }
   }
 
-  // уменьшаем яркость верхней линии, формируем "хвосты"
-  for (int8_t i = 0U; i < WIDTH; i++)
-  {
-    fadePixel(i, HEIGHT - 1U, e_TAIL_STEP);
+  // уменьшаем яркость левой и верхней линии, формируем "хвосты"
+  for (byte i = HEIGHT / 2; i < HEIGHT; i++) {
+    fadePixel(0, i, 120);
+  }
+  for (byte i = 0; i < WIDTH / 2; i++) {
+    fadePixel(i, HEIGHT - 1, TAIL_STEP);
   }
 }
+
 //-------------------------Блуждающий кубик-----------------------
 int16_t coordB[2U];
 int8_t vectorB[2U];
@@ -558,3 +561,57 @@ void Fire2020() {
     }
   }
 }
+//---------------Лаволампа------------------------------
+//Основа @SottNick
+//Оптимизация @Stepko 
+float ball[(WIDTH / 2) -  ((WIDTH - 1) & 0x01)][4];
+void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать не получается, будем попиксельно вырисовывать 2 варианта пузырей
+  if (ball[l][3] == 2)
+  {
+    for (int8_t x = -2; x < 3; x++)
+      for (int8_t y = -2; y < 3; y++)
+        if (abs(x) + abs(y) < 4)
+          drawPixelXYF(fmod(ball[l][1] + x + WIDTH, WIDTH), ball[l][0] + y, color);
+  }
+  else
+  {
+    for (int8_t x = -1; x < 3; x++)
+      for (int8_t y = -1; y < 3; y++)
+        if (!(x == -1 && (y == -1 || y == 2) || x == 2 && (y == -1 || y == 2)))
+          drawPixelXYF(fmod(ball[l][1] + x + WIDTH, WIDTH), ball[l][0] + y, color);
+  }
+}
+
+void LavaLampRoutine() {
+  if (loadingFlag)
+  { for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
+      ball[i][3] = random(1,3);
+      ball[i][2] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
+      ball[i][0] = 0;
+      ball[i][1] = i * 2U + random8(2);//random(0,WIDTH);
+      if ( ball[i][2] == 0)
+      ball[i][2] = 1;
+    }
+    loadingFlag = false;
+  }
+  dimAll(100);
+  blurScreen(20);
+  // Bounce three balls around
+  for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
+    // Draw 'ball'
+    drawBlob(i, ColorFromPalette(RainbowColors_p, ball[i][0] * 16));
+    if (ball[i][0] + ball[i][3] >= HEIGHT - 1)
+      ball[i][0] += (ball[i][2] * ((HEIGHT - 1 - ball[i][0]) / ball[i][3] + 0.005));
+    else if (ball[i][0] - ball[i][3] <= 0)
+      ball[i][0] += (ball[i][2] * (ball[i][0] / ball[i][3] + 0.005));
+    else
+      ball[i][0] += ball[i][2];
+    if (ball[i][0] < 0.01) {                  // почему-то при нуле появляется мерцание (один кадр, еле заметно)
+      ball[i][2] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
+      ball[i][0] = 0.01;
+    }
+    else if (ball[i][0] > HEIGHT - 1.01) {    // тоже на всякий пожарный
+      ball[i][2] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
+      ball[i][2] = -ball[i][2];
+      ball[i][0] = HEIGHT - 1.01;
+    }}}
