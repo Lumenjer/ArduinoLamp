@@ -1,23 +1,17 @@
-// ================================= ЭФФЕКТЫ =====================================
-// --------------------------------- конфетти ------------------------------------
+// ================================= ЭФФЕКТЫ ===========================================
+// ------------------------------ Конфетти ---------------------------------------------
 #define FADE_OUT_SPEED        (70U)                         // скорость затухания
-//--------------------------Шторм,Метель------------------------------------------
+//--------------------------------Шторм,Метель------------------------------------------
 #define SNOW_DENSE (32U) // плотность снега - меньше = плотнее
-#define TAIL_STEP (127U) // длина хвоста
-//-------------------Светлячки со шлейфом-----------------------------------------
+//--------------------------------Светлячки со шлейфом-----------------------------------------
 #define BALLS_AMOUNT          (3U)     // количество "шариков"
-#define CLEAR_PATH            (1U)     // очищать путь
+//#define CLEAR_PATH            (1U)     // очищать путь
 #define TRACK_STEP            (70U)    // длина хвоста шарика (чем больше цифра, тем хвост короче)
 int16_t coord[BALLS_AMOUNT][2U];
 int8_t vector[BALLS_AMOUNT][2U];
 CRGB ballColors[BALLS_AMOUNT];
 //===================Коды эффектов==============================================
-uint8_t wrapX(int8_t x){
-  return (x + WIDTH)%WIDTH;
-}
-uint8_t wrapY(int8_t y){
-  return (y + HEIGHT)%HEIGHT;
-}
+
 uint8_t deltaHue, deltaHue2; // ещё пара таких же, когда нужно много
 uint8_t step; // какой-нибудь счётчик кадров или постедовательностей операций
 uint8_t pcnt;
@@ -26,14 +20,28 @@ uint8_t deltaValue; // просто повторно используемая п
 uint8_t shiftHue[HEIGHT];
 uint8_t shiftValue[HEIGHT];
 byte hue, hue2;
-// палитра для типа реалистичного водопада (если ползунок Масштаб выставить на 100)
-extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
 CRGB _pulse_color;
-void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
-{
-  blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
+extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
+static const TProgmemRGBPalette16 StepkosColors_p FL_PROGMEM = {0x0000ff, 0x0f00f0, 0x1e00e1, 0x2d00d2, 0x3c00c3, 0x4b00b4, 0x5a00a5, 0x690096, 0x780087, 0x870078, 0x9600cd, 0xa50050, 0xb40041, 0xc30032, 0xd20023, 0xe10014};
+static const TProgmemRGBPalette16 ZeebraColors_p FL_PROGMEM = {CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black};
+// добавлено изменение текущей палитры (используется во многих эффектах ниже для бегунка Масштаб)
+const TProgmemRGBPalette16 *palette_arr[] = {
+    &PartyColors_p,
+    &OceanColors_p, 
+    &LavaColors_p, 
+    &HeatColors_p,
+    &ZeebraColors_p, 
+    &WaterfallColors_p, 
+    &CloudColors_p, 
+    &ForestColors_p, 
+    &RainbowColors_p,
+    &RainbowStripeColors_p,
+    &StepkosColors_p };
+const TProgmemRGBPalette16 *curPalette = palette_arr[0];
+void setCurrentPalette(){
+      if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U; // чтобы не было проблем при прошивке без очистки памяти
+      curPalette = palette_arr[(uint8_t)(modes[currentMode].Scale/100.0F*((sizeof(palette_arr)/sizeof(TProgmemRGBPalette16 *))-0.01F))];
 }
-
 // --------------------------------- конфетти ------------------------------------
 void sparklesRoutine()
 {
@@ -48,70 +56,46 @@ void sparklesRoutine()
   }
   fader(FADE_OUT_SPEED);
 }
-// функция плавного угасания цвета для всех пикселей
-void fader(uint8_t step)
+
+// радуги 2D
+// ------------- радуга вертикальная/горизонтальная ----------------
+void rainbowHorVertRoutine(bool isVertical)
 {
-  for (uint8_t i = 0U; i < WIDTH; i++)
+  for (uint8_t i = 0U; i < (isVertical?WIDTH:HEIGHT); i++)
   {
-    for (uint8_t j = 0U; j < HEIGHT; j++)
+    CHSV thisColor = CHSV((uint8_t)(hue + i * modes[currentMode].Scale%170), 255, 255);
+    for (uint8_t j = 0U; j < (isVertical?HEIGHT:WIDTH); j++)
     {
-      fadePixel(i, j, step);
+      drawPixelXY((isVertical?i:j), (isVertical?j:i), thisColor);
     }
   }
 }
-void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // новый фейдер
+
+// ------------- радуга диагональная -------------
+
+void RainbowRoutine()
 {
-  int32_t pixelNum = XY(i, j);
-  if (getPixColor(pixelNum) == 0U) return;
+  // коэф. влияния замаплен на скорость, 4 ползунок нафиг не нужен
+  hue += (6.0 * (modes[currentMode].Speed / 255.0) + 0.05 ); // скорость смещения цвета зависит от кривизны наклна линии, коэф. 6.0 и 0.05
 
-  if (leds[pixelNum].r >= 30U ||
-      leds[pixelNum].g >= 30U ||
-      leds[pixelNum].b >= 30U)
-  {
-    leds[pixelNum].fadeToBlackBy(step);
-  }
-  else
-  {
-    leds[pixelNum] = 0U;
-  }
-}
+  if(modes[currentMode].Scale<85){
+    rainbowHorVertRoutine(false);
+  } else if (modes[currentMode].Scale>170){
+    rainbowHorVertRoutine(true);
+  } else{
 
-// ---------------------------------------- радуга ------------------------------------------
-void rainbowVertical() {
-  hue += 2;
-  for (byte j = 0; j < HEIGHT; j++) {
-    CHSV thisColor = CHSV((byte)(hue + j * modes[currentMode].Scale), 255, 255);
-    for (byte i = 0; i < WIDTH; i++)
-      drawPixelXY(i, j, thisColor);
-  }
-}
-void rainbowHorizontal() {
-  hue += 2;
-  for (byte i = 0; i < WIDTH; i++) {
-    CHSV thisColor = CHSV((byte)(hue + i * modes[currentMode].Scale), 255, 255);
-    for (byte j = 0; j < HEIGHT; j++)
-      drawPixelXY(i, j, thisColor);   //leds[getPixelNumber(i, j)] = thisColor;
-  }
-}
-void rainbowDiagonalRoutine()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    memset8( leds, 0, NUM_LEDS * 3);
-  }
-
-  hue += 8;
   for (uint8_t i = 0U; i < WIDTH; i++)
   {
     for (uint8_t j = 0U; j < HEIGHT; j++)
     {
-      float twirlFactor = 3.0F * (modes[currentMode].Scale / 100.0F);      // на сколько оборотов будет закручена матрица, [0..3]
+      float twirlFactor = fmap((float)modes[currentMode].Scale, 85, 170, 8.3, 24);      // на сколько оборотов будет закручена матрица, [0..3]
       CRGB thisColor = CHSV((uint8_t)(hue + ((float)WIDTH / HEIGHT * i + j * twirlFactor) * ((float)255 / maxDim)), 255, 255);
-      drawPixelXY(i, j, thisColor);
+      drawPixelXY(i, j, thisColor);}
     }
   }
 }
+
+
 // ---------------------------------------- ЦВЕТА -----------------------------
 void colorsRoutine() {
   hue += modes[currentMode].Scale;
@@ -121,6 +105,7 @@ void colorsRoutine() {
 }
 
 // --------------------------------- ЦВЕТ ------------------------------------
+//@stepko
 void colorRoutine() {
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(modes[currentMode].Scale * 2.5, modes[currentMode].Speed * 2.5, 255);
@@ -226,7 +211,12 @@ void whiteLampRoutine()
   }
 }
 
-//--------------------------Шторм,Метель-------------------------
+// ------------- звездопад/метель -------------
+void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
+{
+  blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
+}
+
 void stormRoutine() {
   // заполняем головами комет левую и верхнюю линию
   for (byte i = HEIGHT / 2; i < HEIGHT; i++) {
@@ -256,7 +246,7 @@ void stormRoutine() {
     fadePixel(0, i, 120);
   }
   for (byte i = 0; i < WIDTH / 2; i++) {
-    fadePixel(i, HEIGHT - 1, TAIL_STEP);
+    fadePixel(i, HEIGHT - 1, 70);
   }
 }
 
@@ -384,166 +374,7 @@ void ballsRoutine()
   }
 }
 
-//-----------------Эффект Вышиванка-------------
-byte count = 0;
-byte direct = 1;
-byte flip = 0;
-byte generation = 0;
-void MunchRoutine() { if (loadingFlag)
-  {
-    loadingFlag = false;
-  }
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = 0; y < HEIGHT; y++) {
-      drawPixelXY(x, y,(x ^ y ^ flip) < count ? ColorFromPalette(PartyColors_p, ((x ^ y) << 4) + generation) : CRGB::Black);
-    }
-  }
 
-  count += direct;
-
-  if (count <= 0 || count >= WIDTH) {
-    direct = -direct;
-  }
-
-  if (count <= 0) {
-    if (flip == 0)
-      flip = 7;
-    else
-      flip = 0;
-  }
-
-  generation++;
-}
-
-// ---- Эффект "Тени" 
-// https://github.com/vvip-68/GyverPanelWiFi/blob/master/firmware/GyverPanelWiFi_v1.02/effects.ino
-    uint16_t sPseudotime = 0;
-    uint16_t sLastMillis = 0;
-    uint16_t sHue16 = 0;
-void shadowsRoutine() {
-  
-  uint8_t sat8 = beatsin88( 87, 220, 250);
-  uint8_t brightdepth = beatsin88( 341, 96, 224);
-  uint16_t brightnessthetainc16 = beatsin88( 203, (25 * 225), (40 * 256));
-  uint8_t msmultiplier = beatsin88(map(modes[currentMode].Speed, 1, 255, 100, 255), 32, map(modes[currentMode].Speed, 1, 255, 60, 255)); // beatsin88(147, 32, 60);
-  byte effectBrightness = modes[currentMode].Scale;
-  uint16_t hue16 = sHue16;//gHue * 256;
-  uint16_t hueinc16 = beatsin88(113, 1, 3000);
-  
-  uint16_t ms = millis();
-  uint16_t deltams = ms - sLastMillis ;
-
-  sLastMillis  = ms;
-  sPseudotime += deltams * msmultiplier;
-  sHue16 += deltams * beatsin88( 400, 5,9);
-  uint16_t brightnesstheta16 = sPseudotime;
-
-  for( uint16_t i = 0 ; i < NUM_LEDS; i++) {
-    hue16 += hueinc16;
-    uint8_t hue8 = hue16 / 256;
-
-    brightnesstheta16  += brightnessthetainc16;
-    uint16_t b16 = sin16( brightnesstheta16  ) + 32768U;
-
-    uint32_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536U;
-    uint8_t bri8 = (uint32_t)(((uint32_t)bri16) * brightdepth) / 65536U;
-    bri8 += (255 - brightdepth);
-    
-    CRGB newcolor = CHSV( hue8, sat8, map8(bri8, map(effectBrightness, 1, 255, 32, 125), map(effectBrightness, 1, 255, 125, 250))); 
-    
-    uint16_t pixelnumber = i;
-    pixelnumber = (NUM_LEDS-1) - pixelnumber;
-    
-    nblend( leds[pixelnumber], newcolor, 64);
-  }
-}
-
-// ============= ЭФФЕКТ ВОЛНЫ ===============
-// https://github.com/pixelmatix/aurora/blob/master/PatternWave.h
-// Адаптация от (c) SottNick
-
-    byte waveThetaUpdate = 0;
-    byte waveThetaUpdateFrequency = 0;
-    byte waveTheta = 0;
-
-    byte hueUpdate = 0;
-    byte hueUpdateFrequency = 0;
-//    byte hue = 0; будем использовать сдвиг от эффектов Радуга
-
-    byte waveRotation = 0;
-    uint8_t waveScale = 256 / WIDTH;
-    uint8_t waveCount = 1;
-
-void WaveRoutine() {
-    if (loadingFlag)
-    {
-      loadingFlag = false;
-      waveRotation = (modes[currentMode].Scale - 1) / 25U;
-      waveCount = modes[currentMode].Speed % 2;
-     
-    }
- 
-        dimAll(254);
-  
-        int n = 0;
-
-        switch (waveRotation) {
-            case 0:
-                for (uint8_t x = 0; x < WIDTH; x++) {
-                    n = quadwave8(x * 2 + waveTheta) / waveScale;
-                    drawPixelXY(x, n, ColorFromPalette(RainbowColors_p, hue + x));
-                    if (waveCount != 1)
-                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(RainbowColors_p, hue + x));
-                }
-                break;
-
-            case 1:
-                for (uint8_t y = 0; y < HEIGHT; y++) {
-                    n = quadwave8(y * 2 + waveTheta) / waveScale;
-                    drawPixelXY(n, y, ColorFromPalette(RainbowColors_p, hue + y));
-                    if (waveCount != 1)
-                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(RainbowColors_p, hue + y));
-                }
-                break;
-
-            case 2:
-                for (uint8_t x = 0; x < WIDTH; x++) {
-                    n = quadwave8(x * 2 - waveTheta) / waveScale;
-                    drawPixelXY(x, n, ColorFromPalette(RainbowColors_p, hue + x));
-                    if (waveCount != 1)
-                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(RainbowColors_p, hue + x));
-                }
-                break;
-
-            case 3:
-                for (uint8_t y = 0; y < HEIGHT; y++) {
-                    n = quadwave8(y * 2 - waveTheta) / waveScale;
-                    drawPixelXY(n, y, ColorFromPalette(RainbowColors_p, hue + y));
-                    if (waveCount != 1)
-                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(RainbowColors_p, hue + y));
-                }
-                break;
-        }
-
-
-        if (waveThetaUpdate >= waveThetaUpdateFrequency) {
-            waveThetaUpdate = 0;
-            waveTheta++;
-        }
-        else {
-            waveThetaUpdate++;
-        }
-
-        if (hueUpdate >= hueUpdateFrequency) {
-            hueUpdate = 0;
-            hue++;
-        }
-        else {
-            hueUpdate++;
-        }
-        
-        //blurScreen(20); // @Palpalych советует делать размытие. вот в этом эффекте его явно не хватает...
-}
 
 void Fire2020() {
   //CRGBPalette16 myPal = firepal;
@@ -560,6 +391,407 @@ void Fire2020() {
 //        myLamp.drawPixelXYF_Y((LED_COLS - 1) - i, (float)(LED_ROWS - 1) - j, ColorFromPalette(HeatColors2_p/*myPal*/, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (LED_ROWS - 1)) * 255 / (LED_ROWS - 1)), 255));
     }
   }
+}
+
+// ---- Эффект "Узоры"
+// https://github.com/vvip-68/GyverPanelWiFi/blob/master/firmware/GyverPanelWiFi_v1.02/patterns.ino
+    uint8_t patternIdx = -1;
+    int8_t lineIdx = 0;
+    bool dir = true;
+
+
+    CHSV colorMR[8] = {
+        CHSV(0, 0, 0),              // 0 - Black
+        CHSV(HUE_RED, 255, 255),    // 1 - Red
+        CHSV(HUE_GREEN , 255, 255),  // 2 - Green
+        CHSV(HUE_BLUE, 255, 255),   // 3 - Blue
+        CHSV(HUE_YELLOW, 255, 255), // 4 - Yellow
+        CHSV(0, 0, 220),            // 5 - White
+        CHSV(0, 255, 255),              // 6 - плавно меняеться в цикле (фон)
+        CHSV(0, 255, 255),              // 7 - цвет равен 6 но +64
+    };
+
+
+
+#define MAX_PATTERN 35
+typedef uint8_t Pattern[10][10];
+
+static const Pattern patterns[] PROGMEM = {
+{// 0 зигзаг ********
+{6,6,6,6,6,7,7,7,7,7},  
+{7,6,6,6,6,6,7,7,7,7},
+{7,7,6,6,6,6,6,7,7,7},
+{7,7,7,6,6,6,6,6,7,7},
+{7,7,7,7,6,6,6,6,6,7},
+{7,7,7,7,7,6,6,6,6,6},
+{7,7,7,7,6,6,6,6,6,7},
+{7,7,7,6,6,6,6,6,7,7},
+{7,7,6,6,6,6,6,7,7,7},
+{7,6,6,6,6,6,7,7,7,7}, 
+},
+{// 1 ноты ********* белые на цветном фоне
+{6,6,6,6,6,5,5,5,6,6},
+{6,6,6,6,6,5,6,6,5,6},
+{6,6,6,6,6,5,6,6,6,6},
+{6,6,6,6,6,5,6,6,6,6},
+{6,6,6,6,6,5,6,6,6,6},
+{6,6,5,5,5,5,6,6,6,6},
+{6,5,5,5,5,5,6,6,6,6},
+{6,6,5,5,5,6,6,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,5,6,6,6,6},
+},
+{// 3 сердце *********
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,1,1,6,6,6,1,1,6},
+{6,1,1,1,1,6,1,1,1,1},
+{6,1,1,1,1,1,1,1,1,1},
+{6,1,1,1,1,1,1,1,1,1},
+{6,6,1,1,1,1,1,1,1,6},
+{6,6,1,1,1,1,1,1,1,6},
+{6,6,6,1,1,1,1,1,6,6},
+{6,6,6,6,1,1,1,6,6,6}, 
+{6,6,6,6,6,1,6,6,6,6},
+},
+{// 4 Маска ********
+{6,6,6,6,5,5,6,6,6,6},
+{6,5,5,6,6,6,6,5,5,6},
+{6,5,6,6,5,5,6,6,5,6},
+{6,6,6,6,6,6,6,6,6,6},
+{5,6,5,6,5,5,6,5,6,5},
+{5,6,5,6,5,5,6,5,6,5},
+{6,6,6,6,6,6,6,6,6,6},
+{6,5,6,6,5,5,6,6,5,6},
+{6,5,5,6,6,6,6,5,5,6},
+{6,6,6,6,5,5,6,6,6,6},
+},
+{// 5 клеточка *********
+{6,6,6,7,7,7,7,7,7,6},
+{6,6,6,6,7,7,7,7,6,6},
+{6,6,6,6,6,7,7,6,6,6},
+{7,7,6,6,6,6,6,6,6,6},
+{7,7,7,6,6,6,6,6,6,7},
+{7,7,7,7,6,6,6,6,7,7},
+{7,7,7,6,6,6,6,6,6,7},
+{7,7,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,7,7,6,6,6},
+{6,6,6,6,7,7,7,7,6,6}, 
+},
+{// 6 смайлик********* желтый на зеленом
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,4,4,4,4,4,6,6,6},
+{6,4,4,1,4,1,4,4,6,6},
+{6,4,4,4,4,4,4,4,6,6},
+{6,4,4,4,4,4,4,4,6,6},
+{6,4,1,4,4,4,1,4,6,6},
+{6,4,4,1,1,1,4,4,6,6},
+{6,6,4,4,4,4,4,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,6,6,6,6,6}, 
+},
+{// 7 ********** зигзаг
+{6,0,7,7,7,7,7,0,6,6},
+{6,6,0,7,7,7,0,6,6,6},
+{6,6,6,0,7,0,6,6,6,6},
+{6,6,6,6,0,6,6,6,6,0},
+{0,6,6,6,6,6,6,6,0,7},
+{7,0,6,6,6,6,6,0,7,7},
+{7,7,0,6,6,6,0,7,7,7},
+{7,7,7,0,6,0,7,7,7,7},
+{7,7,7,7,0,7,7,7,7,0},
+{0,7,7,7,7,7,7,7,0,6},
+},
+{// 8 ********* полосы
+{6,6,6,6,6,6,7,7,7,7},
+{7,6,6,6,6,6,6,7,7,7},
+{7,7,6,6,6,6,6,6,7,7},
+{7,7,7,6,6,6,6,6,6,7},
+{7,7,7,7,6,6,6,6,6,6},
+{6,7,7,7,7,6,6,6,6,6},
+{6,6,7,7,7,7,6,6,6,6},
+{6,6,6,7,7,7,7,6,6,6},
+{6,6,6,6,7,7,7,7,6,6},
+{6,6,6,6,6,7,7,7,7,6},
+},
+{// 11 Вышиванка ********
+{1,5,5,5,0,0,5,5,5,1},
+{5,1,1,0,5,5,0,1,1,5},
+{5,5,0,1,5,5,1,0,5,5},
+{5,0,5,1,5,5,1,5,0,5},
+{0,5,5,5,1,1,5,5,5,0},
+{0,5,5,5,1,1,5,5,5,0},
+{5,0,5,1,5,5,1,5,0,5},
+{5,5,0,1,5,5,1,0,5,5},
+{5,1,1,0,5,5,0,1,1,5},
+{1,5,5,5,0,0,5,5,5,1},
+},
+{// 12 ********* плетёнка
+{7,7,7,7,7,7,7,7,7,6},
+{7,7,7,7,7,7,7,7,6,7},
+{7,7,7,7,7,7,7,6,6,6},
+{6,7,7,7,7,7,6,6,6,6},
+{6,6,7,7,7,6,7,6,6,6},
+{6,6,6,7,6,7,7,7,6,6},
+{6,6,6,6,7,7,7,7,7,6},
+{6,6,6,7,7,7,7,7,7,7},
+{7,6,7,7,7,7,7,7,7,7},
+{6,7,7,7,7,7,7,7,7,7},
+},
+{//14 Ромбы ********
+{0,6,6,6,6,6,6,6,6,0},
+{7,0,6,6,6,6,6,6,0,7},
+{7,7,0,6,6,6,6,0,7,7},
+{7,7,7,0,6,6,0,7,7,7},
+{7,7,7,7,0,0,7,7,7,7},
+{7,7,7,7,0,0,7,7,7,7},
+{7,7,7,0,6,6,0,7,7,7},
+{7,7,0,6,6,6,6,0,7,7},
+{7,0,6,6,6,6,6,6,0,7},
+{0,6,6,6,6,6,6,6,6,0},
+},
+{//15 Dont Know ********
+{6,6,6,6,6,5,5,5,5,5},
+{6,5,5,5,6,5,7,7,7,5},
+{6,5,6,5,6,5,7,5,7,5},
+{6,5,5,5,6,5,7,7,7,5},
+{6,6,6,6,6,5,5,5,5,5},
+{5,5,5,5,5,6,6,6,6,6},
+{5,7,7,7,5,6,5,5,5,6},
+{5,7,5,7,5,6,5,6,5,6},
+{5,7,7,7,5,6,5,5,5,6},
+{5,5,5,5,5,6,6,6,6,6},
+},
+{// 16 смайлик********* с очечями
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,6,6,6,6,6,0,0,0},
+{5,5,5,5,5,5,5,5,5,0},
+{0,6,5,5,6,5,5,6,0,0},
+{0,6,6,6,6,6,6,6,0,0},
+{0,6,0,6,6,6,0,6,0,0},
+{0,6,6,0,0,0,6,6,0,0},
+{0,0,6,6,6,6,6,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+{0,0,0,0,0,0,0,0,0,0},
+},
+{// 17 Круги ********
+{6,6,6,5,5,5,5,6,6,6},
+{6,6,5,6,6,6,6,5,6,6},
+{6,5,6,6,0,0,6,6,5,6},
+{5,6,6,0,6,6,0,6,6,5},
+{5,6,0,6,7,7,6,0,6,5},
+{5,6,0,6,7,7,6,0,6,5},
+{5,6,6,0,6,6,0,6,6,5},
+{6,5,6,6,0,0,6,6,5,6},
+{6,6,5,6,6,6,6,5,6,6},
+{6,6,6,5,5,5,5,6,6,6},
+},
+{// 18 Маска ********
+{7,7,7,7,7,7,7,7,6,7},
+{6,6,6,6,6,6,6,6,6,7},
+{7,6,7,7,7,7,6,7,6,7},
+{7,6,6,6,6,6,6,7,6,7},
+{7,6,7,6,7,7,6,7,6,7},
+{7,6,7,6,7,7,6,7,6,7},
+{7,6,7,6,6,6,6,6,6,7},
+{7,6,7,6,7,7,7,7,6,7},
+{7,6,6,6,6,6,6,6,6,6},
+{7,6,7,7,7,7,7,7,7,7},
+},
+{// 21 Маска4 ********
+{6,6,6,6,7,7,6,6,6,6},
+{6,7,6,6,6,6,6,6,7,6},
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,6,7,6,6,7,6,6,6},
+{7,6,6,6,6,6,6,6,6,7},
+{7,6,6,6,6,6,6,6,6,7},
+{6,6,6,7,6,6,7,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{6,7,6,6,6,6,6,6,7,6},
+{6,6,6,6,7,7,6,6,6,6},
+},
+{// 23 Маска6 ********
+{7,6,6,7,6,6,7,6,6,7},
+{6,7,7,6,7,7,6,7,7,6},
+{6,7,6,6,6,6,6,6,7,6},
+{7,6,6,7,6,6,7,6,6,7},
+{6,7,6,6,6,6,6,6,7,6},
+{6,7,6,6,6,6,6,6,7,6},
+{7,6,6,7,6,6,7,6,6,7},
+{6,7,6,6,6,6,6,6,7,6},
+{6,7,7,6,7,7,6,7,7,6},
+{7,6,6,7,6,6,7,6,6,7},
+},
+{// 26 Маска 9********
+{9,0,0,9,0,0,9,0,0,9},
+{0,0,0,0,9,9,0,0,0,0},
+{0,0,0,0,9,9,0,0,0,0},
+{9,0,0,9,0,0,9,0,0,9},
+{0,9,9,0,0,0,0,9,9,0},
+{0,9,9,0,0,0,0,9,9,0},
+{9,0,0,9,0,0,9,0,0,9},
+{0,0,0,0,9,9,0,0,0,0},
+{0,0,0,0,9,9,0,0,0,0},
+{9,0,0,9,0,0,9,0,0,9},
+},
+{// 27 Маска 10********
+{0,7,7,0,0,0,0,7,7,0},
+{7,7,7,0,7,7,0,7,7,7},
+{7,7,7,0,7,7,0,7,7,7},
+{0,0,0,7,7,7,7,0,0,0},
+{0,7,7,7,0,0,7,7,7,0},
+{0,7,7,7,0,0,7,7,7,0},
+{0,0,0,7,7,7,7,0,0,0},
+{7,7,7,0,7,7,0,7,7,7},
+{7,7,7,0,7,7,0,7,7,7},
+{0,7,7,0,0,0,0,7,7,0},
+},
+{// 28 Маска 11********
+{7,7,7,6,6,6,6,7,7,7},
+{7,6,6,6,6,6,6,6,6,7},
+{7,6,7,7,6,6,7,7,6,7},
+{6,6,7,7,7,7,7,7,6,6},
+{6,6,6,7,6,6,7,6,6,6},
+{6,6,6,7,6,6,7,6,6,6},
+{6,6,7,7,7,7,7,7,6,6},
+{7,6,7,7,6,6,7,7,6,7},
+{7,6,6,6,6,6,6,6,6,7},
+{7,7,7,6,6,6,6,7,7,7},
+},
+{// 30 Маска 13********
+{7,7,6,6,7,7,6,6,7,7},
+{7,7,6,6,7,7,6,6,7,7},
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{7,7,6,6,7,7,6,6,7,7},
+{7,7,6,6,7,7,6,6,7,7},
+{6,6,6,6,6,6,6,6,6,6},
+{6,6,6,6,6,6,6,6,6,6},
+{7,7,6,6,7,7,6,6,7,7},
+{7,7,6,6,7,7,6,6,7,7},
+},
+{// 31 Маска 14********
+{7,7,6,6,7,7,6,6,7,7},
+{7,6,6,6,7,7,6,6,6,7},
+{6,6,7,6,7,7,6,7,6,6},
+{6,6,6,6,7,7,6,6,6,6},
+{7,7,7,7,6,6,7,7,7,7},
+{7,7,7,7,6,6,7,7,7,7},
+{6,6,6,6,7,7,6,6,6,6},
+{6,6,7,6,7,7,6,7,6,6},
+{7,6,6,6,7,7,6,6,6,7},
+{7,7,6,6,7,7,6,6,7,7},
+},
+{// 32 Маска 15********
+{7,7,7,7,7,7,7,7,7,7},
+{7,6,7,6,6,6,6,7,6,7},
+{7,7,7,7,7,7,7,7,7,7},
+{7,6,7,6,6,6,6,7,6,7},
+{7,6,7,6,7,7,6,7,6,7},
+{7,6,7,6,7,7,6,7,6,7},
+{7,6,7,6,6,6,6,7,6,7},
+{7,7,7,7,7,7,7,7,7,7},
+{7,6,7,6,6,6,6,7,6,7},
+{7,7,7,7,7,7,7,7,7,7},
+},
+{// 33 Маска 16********
+{6,7,6,6,6,6,6,6,7,6},
+{7,6,7,7,7,7,7,7,6,7},
+{6,7,6,6,6,6,6,6,7,6},
+{6,7,6,7,7,7,7,6,7,6},
+{6,7,6,7,6,6,7,6,7,6},
+{6,7,6,7,6,6,7,6,7,6},
+{6,7,6,7,7,7,7,6,7,6},
+{6,7,6,6,6,6,6,6,7,6},
+{7,6,7,7,7,7,7,7,6,7},
+{6,7,6,6,6,6,6,6,7,6},
+},
+{// 35 Маска 18********
+{7,6,6,7,6,6,7,6,6,7},
+{6,7,6,6,6,6,6,6,7,6},
+{6,6,7,6,6,6,6,7,6,6},
+{7,6,6,7,6,6,7,6,6,7},
+{6,6,6,6,7,7,6,6,6,6},
+{6,6,6,6,7,7,6,6,6,6},
+{7,6,6,7,6,6,7,6,6,7},
+{6,6,7,6,6,6,6,7,6,6},
+{6,7,6,6,6,6,6,6,7,6},
+{7,6,6,7,6,6,7,6,6,7},
+},
+};
+void drawPattern(uint8_t ptrn, uint8_t X, uint8_t Y, uint8_t W, uint8_t H, bool dir) {
+  
+ 
+    if (dir) 
+    shiftDown();
+  else 
+    shiftUp();
+ 
+
+  uint8_t y = dir ? (HEIGHT - 1) : 0;
+
+  // Если ширина паттерна не кратна ширине матрицы - отрисовывать со сдвигом? чтобы рисунок был максимально по центру
+  int8_t offset_x = -((WIDTH % W) / 2) + 3;
+  
+  for (uint8_t x = 0; x < WIDTH + W; x++) {
+    int8_t xx = offset_x + x;
+    if (xx >= 0 && xx < (int8_t)WIDTH) {
+      uint8_t in = (uint8_t)pgm_read_byte(&(patterns[ptrn][lineIdx][x % 10])); 
+      CHSV color = colorMR[in];
+      CHSV color2 = color.v != 0 ? CHSV(color.h, color.s, 255) : color;
+      drawPixelXY(xx, y, color2); 
+    }
+  }
+ if (dir) {
+    lineIdx = (lineIdx > 0) ? (lineIdx - 1) : (H - 1);  
+  } else {
+    lineIdx = (lineIdx < H - 1) ? (lineIdx + 1) : 0;
+  }
+}
+  
+
+
+// Отрисовка указанной картинки с размерами WxH в позиции XY
+void drawPicture_XY(uint8_t iconIdx, uint8_t X, uint8_t Y, uint8_t W, uint8_t H) {
+  if (loadingFlag) {
+    loadingFlag = false;
+  }
+
+  for (byte x = 0; x < W; x++) {
+    for (byte y = 0; y < H; y++) {
+      uint8_t in = (uint8_t)pgm_read_byte(&(patterns[iconIdx][y][x])); 
+      if (in != 0) {
+        CHSV color = colorMR[in];        
+        CHSV color2 = color.v != 0 ? CHSV(color.h, color.s, 255) : color;
+        drawPixelXY(X+x,Y+H-y, color2); 
+      }
+    }
+  }
+}
+
+void patternsRoutine() {
+  
+
+  if (loadingFlag) {
+    loadingFlag = false;
+    patternIdx = map(modes[currentMode].Scale, 1U, MAX_PATTERN + 1, -1, MAX_PATTERN);  // мапим к ползунку масштаба
+    if (patternIdx < 0) {
+      patternIdx = random8(0U, MAX_PATTERN); 
+    }
+    //fadeToBlackBy(leds, NUM_LEDS, 25);
+    if (dir) 
+      lineIdx = 9;         // Картинка спускается сверху вниз - отрисовка с нижней строки паттерна (паттерн 10x10)
+    else 
+      lineIdx = 0;         // Картинка поднимается сверху вниз - отрисовка с верхней строки паттерна
+    // Цвета с индексом 6 и 7 - случайные, определяются в момент настройки эффекта
+    colorMR[6] = CHSV(random8(), 255U, 255U);
+    colorMR[7].hue = colorMR[6].hue + 96; //(beatsin8(1, 0, 255, 0, 127), 255U, 255U);
+      } 
+  drawPattern(patternIdx, 0, 0, 10, 10, dir);
+  EVERY_N_MILLIS((1005000U / modes[currentMode].Speed)){
+    if (modes[currentMode].Scale == 1) 
+    dir=!dir;
+    loadingFlag = true;
+  }  
 }
 //---------------Лаволампа------------------------------
 //Основа @SottNick
@@ -590,7 +822,8 @@ void LavaLampRoutine() {
       ball[i][0] = 0;
       ball[i][1] = i * 2U + random8(2);//random(0,WIDTH);
       if ( ball[i][2] == 0)
-      ball[i][2] = 1;
+        ball[i][2] = 1;
+      setCurrentPalette();
     }
     loadingFlag = false;
   }
@@ -599,7 +832,7 @@ void LavaLampRoutine() {
   // Bounce three balls around
   for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
     // Draw 'ball'
-    drawBlob(i, ColorFromPalette(RainbowColors_p, ball[i][0] * 16));
+    drawBlob(i, ColorFromPalette(*curPalette, ball[i][0] * 16));
     if (ball[i][0] + ball[i][3] >= HEIGHT - 1)
       ball[i][0] += (ball[i][2] * ((HEIGHT - 1 - ball[i][0]) / ball[i][3] + 0.005));
     else if (ball[i][0] - ball[i][3] <= 0)
@@ -615,3 +848,5 @@ void LavaLampRoutine() {
       ball[i][2] = -ball[i][2];
       ball[i][0] = HEIGHT - 1.01;
     }}}
+
+    
