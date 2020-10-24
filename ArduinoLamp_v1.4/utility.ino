@@ -2,6 +2,9 @@
 void dimAll(uint8_t value) { 
     fadeToBlackBy (leds, NUM_LEDS, 255U - value);}
 
+static float fmap(const float x, const float in_min, const float in_max, const float out_min, const float out_max){
+        return (out_max - out_min) * (x - in_min) / (in_max - in_min) + out_min;
+    }
 
 void shiftDown(){
   for (byte x = 0; x < WIDTH; x++) {
@@ -13,13 +16,6 @@ void shiftUp() {
     for (byte y = HEIGHT; y > 0; y--) {
       drawPixelXY(x, y,getPixColorXY(x, y - 1));
     }}}   
-void shiftDiag(){
-  for (int8_t y = 0U; y < HEIGHT - 1U; y++)
-  {
-    for (int8_t x = 0; x < WIDTH; x++)
-    {
-      drawPixelXY(wrapX(x + 1U), y, getPixColorXY(x, y + 1U));
-    }}}
 // залить все
 void fillAll(CRGB color) {
   for (int i = 0; i < NUM_LEDS; i++) {

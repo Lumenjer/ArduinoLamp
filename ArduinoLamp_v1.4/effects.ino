@@ -12,28 +12,32 @@ int16_t coord[BALLS_AMOUNT][2U];
 int8_t vector[BALLS_AMOUNT][2U];
 CRGB ballColors[BALLS_AMOUNT];
 //===================Коды эффектов==============================================
-uint8_t wrapX(int8_t x){
-  return (x + WIDTH)%WIDTH;
-}
-uint8_t wrapY(int8_t y){
-  return (y + HEIGHT)%HEIGHT;
-}
 uint8_t deltaHue, deltaHue2; // ещё пара таких же, когда нужно много
-uint8_t step; // какой-нибудь счётчик кадров или постедовательностей операций
-uint8_t pcnt;
-uint8_t line[WIDTH];
 uint8_t deltaValue; // просто повторно используемая переменная
-uint8_t shiftHue[HEIGHT];
-uint8_t shiftValue[HEIGHT];
 byte hue, hue2;
-// палитра для типа реалистичного водопада (если ползунок Масштаб выставить на 100)
-extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
 CRGB _pulse_color;
 void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
 {
   blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
 }
-
+extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
+extern const TProgmemRGBPalette16 ZeebraColors_p FL_PROGMEM = {CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black};
+const TProgmemRGBPalette16 *palette_arr[] = {
+  &PartyColors_p,
+  &OceanColors_p,
+  &LavaColors_p,
+  &HeatColors_p,
+  &ZeebraColors_p,
+  &WaterfallColors_p,
+  &CloudColors_p,
+  &ForestColors_p,
+  &RainbowColors_p,
+  &RainbowStripeColors_p,
+};
+const TProgmemRGBPalette16 *curPalette = palette_arr[0];
+void setCurrentPalette(uint8_t palIdx) {
+  curPalette = palette_arr[palIdx];
+}
 // --------------------------------- конфетти ------------------------------------
 void sparklesRoutine()
 {
@@ -76,42 +80,44 @@ void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // новый фей
   }
 }
 
-// ---------------------------------------- радуга ------------------------------------------
-void rainbowVertical() {
-  hue += 2;
-  for (byte j = 0; j < HEIGHT; j++) {
-    CHSV thisColor = CHSV((byte)(hue + j * modes[currentMode].Scale), 255, 255);
-    for (byte i = 0; i < WIDTH; i++)
-      drawPixelXY(i, j, thisColor);
-  }
-}
-void rainbowHorizontal() {
-  hue += 2;
-  for (byte i = 0; i < WIDTH; i++) {
-    CHSV thisColor = CHSV((byte)(hue + i * modes[currentMode].Scale), 255, 255);
-    for (byte j = 0; j < HEIGHT; j++)
-      drawPixelXY(i, j, thisColor);   //leds[getPixelNumber(i, j)] = thisColor;
-  }
-}
-void rainbowDiagonalRoutine()
+// радуги 2D
+// ------------- Pадуга вертикальная/горизонтальная ----------------
+void rainbowHorVertRoutine(bool isVertical)
 {
-  if (loadingFlag)
+  for (uint8_t i = 0U; i < (isVertical ? WIDTH : HEIGHT); i++)
   {
-    loadingFlag = false;
-    memset8( leds, 0, NUM_LEDS * 3);
-  }
-
-  hue += 8;
-  for (uint8_t i = 0U; i < WIDTH; i++)
-  {
-    for (uint8_t j = 0U; j < HEIGHT; j++)
+    CHSV thisColor = CHSV((uint8_t)(hue + i * modes[currentMode].Scale % 170), 255, 255);
+    for (uint8_t j = 0U; j < (isVertical ? HEIGHT : WIDTH); j++)
     {
-      float twirlFactor = 3.0F * (modes[currentMode].Scale / 100.0F);      // на сколько оборотов будет закручена матрица, [0..3]
-      CRGB thisColor = CHSV((uint8_t)(hue + ((float)WIDTH / HEIGHT * i + j * twirlFactor) * ((float)255 / maxDim)), 255, 255);
-      drawPixelXY(i, j, thisColor);
+      drawPixelXY((isVertical ? i : j), (isVertical ? j : i), thisColor);
     }
   }
 }
+
+// ------------- Радуга диагональная -------------
+void RainbowRoutine()
+{
+  // коэф. влияния замаплен на скорость, 4 ползунок нафиг не нужен
+  hue += (6.0 * (modes[currentMode].Speed / 255.0) + 0.05 ); // скорость смещения цвета зависит от кривизны наклна линии, коэф. 6.0 и 0.05
+
+  if (modes[currentMode].Scale < 85) {
+    rainbowHorVertRoutine(false);
+  } else if (modes[currentMode].Scale > 170) {
+    rainbowHorVertRoutine(true);
+  } else {
+
+    for (uint8_t i = 0U; i < WIDTH; i++)
+    {
+      for (uint8_t j = 0U; j < HEIGHT; j++)
+      {
+        float twirlFactor = fmap((float)modes[currentMode].Scale, 85, 170, 8.3, 24);      // на сколько оборотов будет закручена матрица, [0..3]
+        CRGB thisColor = CHSV((uint8_t)(hue + ((float)WIDTH / HEIGHT * i + j * twirlFactor) * ((float)255 / maxDim)), 255, 255);
+        drawPixelXY(i, j, thisColor);
+      }
+    }
+  }
+}
+
 // ---------------------------------------- ЦВЕТА -----------------------------
 void colorsRoutine() {
   hue += modes[currentMode].Scale;
@@ -389,13 +395,14 @@ byte count = 0;
 byte direct = 1;
 byte flip = 0;
 byte generation = 0;
-void MunchRoutine() { if (loadingFlag)
-  {
+void MunchRoutine() { 
+  if (loadingFlag)
+  { setCurrentPalette(palette);
     loadingFlag = false;
   }
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT; y++) {
-      drawPixelXY(x, y,(x ^ y ^ flip) < count ? ColorFromPalette(PartyColors_p, ((x ^ y) << 4) + generation) : CRGB::Black);
+      drawPixelXY(x, y,(x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << 4) + generation) : CRGB::Black);
     }
   }
 
@@ -480,7 +487,7 @@ void WaveRoutine() {
       loadingFlag = false;
       waveRotation = (modes[currentMode].Scale - 1) / 25U;
       waveCount = modes[currentMode].Speed % 2;
-     
+      setCurrentPalette(palette);
     }
  
         dimAll(254);
@@ -491,36 +498,36 @@ void WaveRoutine() {
             case 0:
                 for (uint8_t x = 0; x < WIDTH; x++) {
                     n = quadwave8(x * 2 + waveTheta) / waveScale;
-                    drawPixelXY(x, n, ColorFromPalette(RainbowColors_p, hue + x));
+                    drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
                     if (waveCount != 1)
-                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(RainbowColors_p, hue + x));
+                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
                 }
                 break;
 
             case 1:
                 for (uint8_t y = 0; y < HEIGHT; y++) {
                     n = quadwave8(y * 2 + waveTheta) / waveScale;
-                    drawPixelXY(n, y, ColorFromPalette(RainbowColors_p, hue + y));
+                    drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
                     if (waveCount != 1)
-                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(RainbowColors_p, hue + y));
+                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
                 }
                 break;
 
             case 2:
                 for (uint8_t x = 0; x < WIDTH; x++) {
                     n = quadwave8(x * 2 - waveTheta) / waveScale;
-                    drawPixelXY(x, n, ColorFromPalette(RainbowColors_p, hue + x));
+                    drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
                     if (waveCount != 1)
-                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(RainbowColors_p, hue + x));
+                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
                 }
                 break;
 
             case 3:
                 for (uint8_t y = 0; y < HEIGHT; y++) {
                     n = quadwave8(y * 2 - waveTheta) / waveScale;
-                    drawPixelXY(n, y, ColorFromPalette(RainbowColors_p, hue + y));
+                    drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
                     if (waveCount != 1)
-                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(RainbowColors_p, hue + y));
+                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
                 }
                 break;
         }
@@ -541,26 +548,29 @@ void WaveRoutine() {
         else {
             hueUpdate++;
         }
-        
-        //blurScreen(20); // @Palpalych советует делать размытие. вот в этом эффекте его явно не хватает...
+        }
+
+// ---------------------Огненная Лампа-------------------------------
+// Yaroslaw Turbin, 22.06.2020 
+// https://vk.com/ldirko
+// https://pastebin.com/eKqe4zzA
+// доработки - kostyamat
+void fireRoutine() {
+if(loadingFlag){
+  setCurrentPalette(palette);
+  loadingFlag=false; 
 }
 
-void Fire2020() {
-  //CRGBPalette16 myPal = firepal;
   uint8_t speedy = map(modes[currentMode].Speed, 1, 255, 255, 0);
   uint8_t _scale = modes[currentMode].Scale + 30;
 
   uint32_t a = millis();
   for (byte i = 0U; i < WIDTH; i++) {
     for (float j = 0.; j < HEIGHT; j++) {
-      //leds[XY((LED_COLS - 1) - i, (LED_ROWS - 1) - j)] = ColorFromPalette(*curPalette/*myPal*/, qsub8(inoise8(i * scale, j * scale + a, a / speed), abs8(j - (LED_ROWS - 1)) * 255 / (LED_ROWS - 1)), 255);
-//      if(curPalette!=palettes.at(10))
-        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(HeatColors_p/*myPal*/, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
-//      else
-//        myLamp.drawPixelXYF_Y((LED_COLS - 1) - i, (float)(LED_ROWS - 1) - j, ColorFromPalette(HeatColors2_p/*myPal*/, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (LED_ROWS - 1)) * 255 / (LED_ROWS - 1)), 255));
-    }
+      drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));    }
   }
 }
+
 //---------------Лаволампа------------------------------
 //Основа @SottNick
 //Оптимизация @Stepko 
@@ -588,18 +598,18 @@ void LavaLampRoutine() {
       ball[i][3] = random(1,3);
       ball[i][2] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
       ball[i][0] = 0;
-      ball[i][1] = i * 2U + random8(2);//random(0,WIDTH);
+      ball[i][1] = i * 2U + random8(2);
       if ( ball[i][2] == 0)
-      ball[i][2] = 1;
+      ball[i][2] = 1;     
     }
     loadingFlag = false;
+    setCurrentPalette(palette);
   }
   dimAll(100);
   blurScreen(20);
-  // Bounce three balls around
   for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
     // Draw 'ball'
-    drawBlob(i, ColorFromPalette(RainbowColors_p, ball[i][0] * 16));
+    drawBlob(i, ColorFromPalette(*curPalette, ball[i][0] * 16));
     if (ball[i][0] + ball[i][3] >= HEIGHT - 1)
       ball[i][0] += (ball[i][2] * ((HEIGHT - 1 - ball[i][0]) / ball[i][3] + 0.005));
     else if (ball[i][0] - ball[i][3] <= 0)

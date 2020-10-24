@@ -13,18 +13,14 @@
 #include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
-struct {
-  byte Brightness = 10;
-  byte Speed = 30;
-  byte Scale = 10;
-} modes[MODE_AMOUNT]; //настройки эффекта по умолчанию
+struct {byte Brightness = 10;byte Speed = 30;byte Scale = 10;} modes[MODE_AMOUNT]; //настройки эффектов по умолчанию
 int8_t currentMode = 10;
 boolean loadingFlag = true;
 boolean ONflag = true;
 byte numHold;
+byte palette;
 unsigned long numHold_Timer = 0;
 unsigned long userTimer = 0UL;
-unsigned char matrixValue[8][16];
 
 
 void setup() {

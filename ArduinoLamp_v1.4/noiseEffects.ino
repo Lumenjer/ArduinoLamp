@@ -40,126 +40,17 @@ void madnessNoise()
   ihue += 1;
 }
 
-void rainbowNoise()
+void noise3D()
 {
   if (loadingFlag)
-  {
+  { setCurrentPalette(palette);
     loadingFlag = false;
-    currentPalette = RainbowColors_p;
+    currentPalette = *curPalette;
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    colorLoop = 1;
-  }
-  fillNoiseLED();
-}
-
-void rainbowStripeNoise()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    currentPalette = RainbowStripeColors_p;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
-    colorLoop = 1;
-  }
-  fillNoiseLED();
-}
-
-void zebraNoise()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    // 'black out' all 16 palette entries...
-    fill_solid(currentPalette, 16, CRGB::Black);
-    // and set every fourth one to white.
-    currentPalette[0] = CRGB::White;
-    currentPalette[4] = CRGB::White;
-    currentPalette[8] = CRGB::White;
-    currentPalette[12] = CRGB::White;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
-    colorLoop = 1;
-  }
-  fillNoiseLED();
-}
-
-void forestNoise()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    currentPalette = ForestColors_p;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
+    if (modes[currentMode].Speed%2)
     colorLoop = 0;
-  }
-  fillNoiseLED();
-}
-
-void oceanNoise()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    currentPalette = OceanColors_p;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
-    colorLoop = 0;
-  }
-
-  fillNoiseLED();
-}
-
-void plasmaNoise()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    currentPalette = PartyColors_p;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
-    colorLoop = 1;
-  }
-  fillNoiseLED();
-}
-
-void cloudNoise()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    currentPalette = CloudColors_p;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
-    colorLoop = 0;
-  }
-  fillNoiseLED();
-}
-
-void lavaNoise()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    currentPalette = LavaColors_p;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
-    colorLoop = 0;
-  }
-  fillNoiseLED();
-}
-
-void smokeNoise()
-{
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    currentPalette = WaterfallColors_p;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
-    colorLoop = 0;
+    else colorLoop = 1;    
   }
   fillNoiseLED();
 }
