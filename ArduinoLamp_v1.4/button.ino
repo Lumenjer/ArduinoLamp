@@ -2,6 +2,7 @@ boolean inDirection;
 
 void buttonTick() {
   touch.tick();
+    touch2.tick();
 
   if (touch.isSingle()) {
     {
