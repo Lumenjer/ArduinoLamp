@@ -19,6 +19,7 @@
 #define LED_PIN 6            // пин ленты
 #define BTN_PIN 2         // пин кнопки1
 #define BTN_PAN 3         // пин кнопки2
+#define BTN_PUN 4         // пин кнопки2
 #define MODE_AMOUNT 15       // кол-во эффектов
 #define NUM_LEDS WIDTH * HEIGHT
 #define SEGMENTS 1            // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
@@ -32,3 +33,4 @@ uint32_t DemTimer = 0UL;                      // тут будет хранит�
 bool isDemo = false;
 GButton touch(BTN_PIN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL
 GButton touch2(BTN_PAN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL
+GButton touch3(BTN_PUN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL

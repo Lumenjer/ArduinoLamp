@@ -13,9 +13,6 @@ CRGB ballColors[BALLS_AMOUNT];
 //===================Коды эффектов==============================================
 
 uint8_t deltaHue, deltaHue2; // ещё пара таких же, когда нужно много
-uint8_t step; // какой-нибудь счётчик кадров или постедовательностей операций
-uint8_t pcnt;
-uint8_t line[WIDTH];
 uint8_t deltaValue; // просто повторно используемая переменная
 uint8_t shiftHue[HEIGHT];
 uint8_t shiftValue[HEIGHT];
