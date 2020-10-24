@@ -19,8 +19,8 @@ boolean loadingFlag = true;
 boolean ONflag = true;
 byte numHold;
 unsigned long numHold_Timer = 0;
-unsigned char matrixValue[8][16];
-volatile boolean ir_flag;
+byte palette; //палитры
+
 
 
 void setup() {

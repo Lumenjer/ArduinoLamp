@@ -42,7 +42,8 @@ void madnessNoise()
 void Noise3D()
 {
   if (loadingFlag)
-  { setCurrentPalette();
+  { setCurrentPalette(palette);
+   fillnoise8();
     loadingFlag = false;
     currentPalette = *curPalette;
     scale = scale; 

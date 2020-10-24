@@ -22,8 +22,7 @@ uint8_t shiftValue[HEIGHT];
 byte hue, hue2;
 CRGB _pulse_color;
 extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
-static const TProgmemRGBPalette16 StepkosColors_p FL_PROGMEM = {0x0000ff, 0x0f00f0, 0x1e00e1, 0x2d00d2, 0x3c00c3, 0x4b00b4, 0x5a00a5, 0x690096, 0x780087, 0x870078, 0x9600cd, 0xa50050, 0xb40041, 0xc30032, 0xd20023, 0xe10014};
-static const TProgmemRGBPalette16 ZeebraColors_p FL_PROGMEM = {CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black};
+extern const TProgmemRGBPalette16 ZeebraColors_p FL_PROGMEM = {CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black};
 // добавлено изменение текущей палитры (используется во многих эффектах ниже для бегунка Масштаб)
 const TProgmemRGBPalette16 *palette_arr[] = {
     &PartyColors_p,
@@ -35,12 +34,10 @@ const TProgmemRGBPalette16 *palette_arr[] = {
     &CloudColors_p, 
     &ForestColors_p, 
     &RainbowColors_p,
-    &RainbowStripeColors_p,
-    &StepkosColors_p };
+    &RainbowStripeColors_p,};
 const TProgmemRGBPalette16 *curPalette = palette_arr[0];
-void setCurrentPalette(){
-      if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U; // чтобы не было проблем при прошивке без очистки памяти
-      curPalette = palette_arr[(uint8_t)(modes[currentMode].Scale/100.0F*((sizeof(palette_arr)/sizeof(TProgmemRGBPalette16 *))-0.01F))];
+void setCurrentPalette(uint8_t palIdx) {
+  curPalette = palette_arr[palIdx];
 }
 // --------------------------------- конфетти ------------------------------------
 void sparklesRoutine()
@@ -376,24 +373,29 @@ void ballsRoutine()
 
 
 
-void Fire2020() {
-  //CRGBPalette16 myPal = firepal;
+// ---------------------Огненная Лампа-------------------------------
+// Yaroslaw Turbin, 22.06.2020 
+// https://vk.com/ldirko
+// https://pastebin.com/eKqe4zzA
+// доработки - kostyamat
+void fireRoutine() {
+if(loadingFlag){
+  setCurrentPalette(palette);
+  loadingFlag=false; 
+}
+
   uint8_t speedy = map(modes[currentMode].Speed, 1, 255, 255, 0);
   uint8_t _scale = modes[currentMode].Scale + 30;
 
   uint32_t a = millis();
   for (byte i = 0U; i < WIDTH; i++) {
     for (float j = 0.; j < HEIGHT; j++) {
-      //leds[XY((LED_COLS - 1) - i, (LED_ROWS - 1) - j)] = ColorFromPalette(*curPalette/*myPal*/, qsub8(inoise8(i * scale, j * scale + a, a / speed), abs8(j - (LED_ROWS - 1)) * 255 / (LED_ROWS - 1)), 255);
-//      if(curPalette!=palettes.at(10))
-        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(HeatColors_p/*myPal*/, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
-//      else
-//        myLamp.drawPixelXYF_Y((LED_COLS - 1) - i, (float)(LED_ROWS - 1) - j, ColorFromPalette(HeatColors2_p/*myPal*/, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (LED_ROWS - 1)) * 255 / (LED_ROWS - 1)), 255));
-    }
+      drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));    }
   }
 }
 
-// ---- Эффект "Узоры"
+
+// --------------------------------Узоры-------------------------------------
 // https://github.com/vvip-68/GyverPanelWiFi/blob/master/firmware/GyverPanelWiFi_v1.02/patterns.ino
     uint8_t patternIdx = -1;
     int8_t lineIdx = 0;
@@ -823,7 +825,7 @@ void LavaLampRoutine() {
       ball[i][1] = i * 2U + random8(2);//random(0,WIDTH);
       if ( ball[i][2] == 0)
         ball[i][2] = 1;
-      setCurrentPalette();
+      setCurrentPalette(palette);
     }
     loadingFlag = false;
   }

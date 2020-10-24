@@ -7,7 +7,7 @@ void effectsTick() {
         //|номер   |название функции эффекта     |тоже надо|
         case 0 : sparklesRoutine();             break;
         case 1 : RainbowRoutine();              break;
-        case 2 : Fire2020();                    break;
+        case 2 : fireRoutine();                 break;
         case 3 : LavaLampRoutine();             break;
         case 4 : madnessNoise();                break;
         case 5 : Noise3D();                     break;
