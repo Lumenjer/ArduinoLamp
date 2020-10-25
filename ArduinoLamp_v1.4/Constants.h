@@ -1,6 +1,6 @@
 // ============= НАСТРОЙКИ =============
 // ---------- МАТРИЦА ---------
-#define BRIGHTNESS 100         // стандартная маскимальная яркость (0-255)
+#define BRIGHTNESS 10         // стандартная маскимальная яркость (0-255)
 #define CURRENT_LIMIT 1000    // лимит по току в миллиамперах, автоматически управляет яркостью (пожалей свой блок питания!) 0 - выключить лимит
 
 #define WIDTH 16              // ширина матрицы
@@ -15,22 +15,21 @@
 // шпаргалка по настройке матрицы здесь! https://alexgyver.ru/matrix_guide/
 
 #define numHold_Time (1*1000)     // время отображения индикатора уровня яркости/скорости/масштаба
+
 // ============= ДЛЯ РАЗРАБОТЧИКОВ =============
-#define LED_PIN 6            // пин ленты
-#define BTN_PIN 2         // пин кнопки1
-#define BTN_PAN 3         // пин кнопки2
-#define BTN_PUN 4         // пин кнопки2
-#define MODE_AMOUNT 15       // кол-во эффектов
+#define LED_PIN 6             // пин ленты
+#define BTN_PIN 2
+#define POT_PIN 0             // пин Потанциометра Яркости
+#define POT2_PIN 1             // пин Потанциометра Скорости
+#define POT3_PIN 2             // пин Потанциометра Масштаба
+#define MODE_AMOUNT 17        //кол-во эффектов
 #define NUM_LEDS WIDTH * HEIGHT
-#define SEGMENTS 1            // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
-#define INDICATOR             // Индикатор(Плохи на малых матрицах)(Не нужен, коментируйте)
-#define RANDOM_DEMO 1         // 0,1 - включить рандомный выбор режима
-#define DEMOTIME 5            // в секундах // время задержки между эффектами
-//#define DEBUG               // Дебаг(Нужен, расскоментируйте)
+#define SEGMENTS 1             // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
+#define RANDOM_DEMO 1          // 0,1 - включить рандомный выбор режима
+#define DEMOTIME 5             // в секундах // время задержки между эффектами
+//#define DEBUG                // Дебаг(Нужен, расскоментируйте)
 // ------------------- ТИПЫ --------------------
 CRGB leds[NUM_LEDS];
-uint32_t DemTimer = 0UL;                      // тут будет храниться время следующего переключения эффекта
-bool isDemo = false;
 GButton touch(BTN_PIN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL
-GButton touch2(BTN_PAN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL
-GButton touch3(BTN_PUN, HIGH_PULL, NORM_OPEN); //если сенсорна кнопка LOW_PULL
+
+bool isDemo = false;

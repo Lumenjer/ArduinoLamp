@@ -1,40 +1,10 @@
-// служебные функции
-// функция плавного угасания цвета для всех пикселей
-static float fmap(const float x, const float in_min, const float in_max, const float out_min, const float out_max){
-        return (out_max - out_min) * (x - in_min) / (in_max - in_min) + out_min;
-    }
-
-void fader(uint8_t step)
-{
-  for (uint8_t i = 0U; i < WIDTH; i++)
-  {
-    for (uint8_t j = 0U; j < HEIGHT; j++)
-    {
-      fadePixel(i, j, step);
-    }
-  }
-}
-void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // новый фейдер
-{
-  int32_t pixelNum = XY(i, j);
-  if (getPixColor(pixelNum) == 0U) return;
-
-  if (leds[pixelNum].r >= 30U ||
-      leds[pixelNum].g >= 30U ||
-      leds[pixelNum].b >= 30U)
-  {
-    leds[pixelNum].fadeToBlackBy(step);
-  }
-  else
-  {
-    leds[pixelNum] = 0U;
-  }
-}
-
 
 void dimAll(uint8_t value) { 
     fadeToBlackBy (leds, NUM_LEDS, 255U - value);}
 
+static float fmap(const float x, const float in_min, const float in_max, const float out_min, const float out_max){
+        return (out_max - out_min) * (x - in_min) / (in_max - in_min) + out_min;
+    }
 
 void shiftDown(){
   for (byte x = 0; x < WIDTH; x++) {
@@ -141,9 +111,6 @@ uint16_t getPixelNumber(uint8_t x, uint8_t y)
 {
   return XY(x, y);
 }
-
-uint16_t getmaxDim() {return maxDim;}
-
 void drawPixelXYF(float x, float y, const CRGB &color)
 {
   if (x<0 || y<0 || x>((float)WIDTH-1) || y>((float)HEIGHT-1)) return;

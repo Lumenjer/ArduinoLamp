@@ -25,30 +25,32 @@ void madnessNoise()
   if (loadingFlag)
   {
     loadingFlag = false;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
+    scale = Scale;
+    speed = Speed;
   }
   fillnoise8();
   for (uint8_t i = 0; i < WIDTH; i++)
   {
     for (uint8_t j = 0; j < HEIGHT; j++)
     {
+      CRGB thisColor = CHSV(noise[j][i], 255, noise[i][j]);
       drawPixelXY(i, j,CHSV(noise[j][i], 255, noise[i][j]));
     }
   }
   ihue += 1;
 }
 
-void Noise3D()
+void noise3D()
 {
   if (loadingFlag)
   { setCurrentPalette(palette);
-   fillnoise8();
     loadingFlag = false;
     currentPalette = *curPalette;
-    scale = scale; 
-    speed = modes[currentMode].Speed;
-    colorLoop = 1;
+    scale = Scale;
+    speed = Speed;
+    if (Speed%2)
+    colorLoop = 0;
+    else colorLoop = 1;    
   }
   fillNoiseLED();
 }
