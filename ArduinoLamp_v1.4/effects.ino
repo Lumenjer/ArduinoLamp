@@ -422,133 +422,107 @@ void MunchRoutine() {
   generation++;
 }
 
-// ---- Эффект "Тени" 
-// https://github.com/vvip-68/GyverPanelWiFi/blob/master/firmware/GyverPanelWiFi_v1.02/effects.ino
-    uint16_t sPseudotime = 0;
-    uint16_t sLastMillis = 0;
-    uint16_t sHue16 = 0;
-void shadowsRoutine() {
-  
-  uint8_t sat8 = beatsin88( 87, 220, 250);
-  uint8_t brightdepth = beatsin88( 341, 96, 224);
-  uint16_t brightnessthetainc16 = beatsin88( 203, (25 * 225), (40 * 256));
-  uint8_t msmultiplier = beatsin88(map(modes[currentMode].Speed, 1, 255, 100, 255), 32, map(modes[currentMode].Speed, 1, 255, 60, 255)); // beatsin88(147, 32, 60);
-  byte effectBrightness = modes[currentMode].Scale;
-  uint16_t hue16 = sHue16;//gHue * 256;
-  uint16_t hueinc16 = beatsin88(113, 1, 3000);
-  
-  uint16_t ms = millis();
-  uint16_t deltams = ms - sLastMillis ;
-
-  sLastMillis  = ms;
-  sPseudotime += deltams * msmultiplier;
-  sHue16 += deltams * beatsin88( 400, 5,9);
-  uint16_t brightnesstheta16 = sPseudotime;
-
-  for( uint16_t i = 0 ; i < NUM_LEDS; i++) {
-    hue16 += hueinc16;
-    uint8_t hue8 = hue16 / 256;
-
-    brightnesstheta16  += brightnessthetainc16;
-    uint16_t b16 = sin16( brightnesstheta16  ) + 32768U;
-
-    uint32_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536U;
-    uint8_t bri8 = (uint32_t)(((uint32_t)bri16) * brightdepth) / 65536U;
-    bri8 += (255 - brightdepth);
-    
-    CRGB newcolor = CHSV( hue8, sat8, map8(bri8, map(effectBrightness, 1, 255, 32, 125), map(effectBrightness, 1, 255, 125, 250))); 
-    
-    uint16_t pixelnumber = i;
-    pixelnumber = (NUM_LEDS-1) - pixelnumber;
-    
-    nblend( leds[pixelnumber], newcolor, 64);
-  }
-}
-
-// ============= ЭФФЕКТ ВОЛНЫ ===============
-// https://github.com/pixelmatix/aurora/blob/master/PatternWave.h
-// Адаптация от (c) SottNick
-
-    byte waveThetaUpdate = 0;
-    byte waveThetaUpdateFrequency = 0;
-    byte waveTheta = 0;
-
-    byte hueUpdate = 0;
-    byte hueUpdateFrequency = 0;
-//    byte hue = 0; будем использовать сдвиг от эффектов Радуга
-
-    byte waveRotation = 0;
-    uint8_t waveScale = 256 / WIDTH;
-    uint8_t waveCount = 1;
-
-void WaveRoutine() {
+// --------------------------- эффект МетаБолз ----------------------
+// https://gist.github.com/StefanPetrick/170fbf141390fafb9c0c76b8a0d34e54
+// Stefan Petrick's MetaBalls Effect mod by PalPalych for GyverLamp 
+/*
+  Metaballs proof of concept by Stefan Petrick (mod by Palpalych for GyverLamp 27/02/2020)
+  ...very rough 8bit math here...
+  read more about the concept of isosurfaces and metaballs:
+  https://www.gamedev.net/articles/programming/graphics/exploring-metaballs-and-isosurfaces-in-2d-r2556
+*/
+void MetaBallsRoutine() {
     if (loadingFlag)
     {
       loadingFlag = false;
-      waveRotation = (modes[currentMode].Scale - 1) / 25U;
-      waveCount = modes[currentMode].Speed % 2;
       setCurrentPalette(palette);
     }
- 
-        dimAll(254);
+      
+  float speed = modes[currentMode].Speed / 127.0;
+
+  // get some 2 random moving points
+  uint16_t param1 = millis() * speed;
+  uint8_t x2 = inoise8(param1, 25355, 685 ) / WIDTH;
+  uint8_t y2 = inoise8(param1, 355, 11685 ) / HEIGHT;
+
+  uint8_t x3 = inoise8(param1, 55355, 6685 ) / WIDTH;
+  uint8_t y3 = inoise8(param1, 25355, 22685 ) / HEIGHT;
+
+  // and one Lissajou function
+  uint8_t x1 = beatsin8(23 * speed, 0, WIDTH - 1U);
+  uint8_t y1 = beatsin8(28 * speed, 0, HEIGHT - 1U);
+
+  for (uint8_t y = 0; y < HEIGHT; y++) {
+    for (uint8_t x = 0; x < WIDTH; x++) {
+
+      // calculate distances of the 3 points from actual pixel
+      // and add them together with weightening
+      uint8_t  dx =  abs(x - x1);
+      uint8_t  dy =  abs(y - y1);
+      uint8_t dist = 2 * sqrt((dx * dx) + (dy * dy));
+
+      dx =  abs(x - x2);
+      dy =  abs(y - y2);
+      dist += sqrt((dx * dx) + (dy * dy));
+
+      dx =  abs(x - x3);
+      dy =  abs(y - y3);
+      dist += sqrt((dx * dx) + (dy * dy));
+
+      // inverse result
+      //byte color = modes[currentMode].Speed * 10 / dist;
+      //byte color = 1000U / dist; кажется, проблема была именно тут в делении на ноль
+      byte color = (dist == 0) ? 255U : 1000U / dist;
+
+      // map color between thresholds
+      if (color > 0 && color < 60) {
+        if (modes[currentMode].Scale == 100U)
+          drawPixelXY(x, y, CHSV(color * 9, 255, 255));// это оригинальный цвет эффекта
+        else
+          drawPixelXY(x, y, ColorFromPalette(*curPalette, color * 9));
+      } else {
+        if (modes[currentMode].Scale == 100U)
+          drawPixelXY(x, y, CHSV(0, 255, 255)); // в оригинале центральный глаз почему-то красный
+        else
+          drawPixelXY(x, y, ColorFromPalette(*curPalette, 0U));
+      }
+      // show the 3 points, too
+      drawPixelXY(x1, y1, CRGB(255, 255, 255));
+      drawPixelXY(x2, y2, CRGB(255, 255, 255));
+      drawPixelXY(x3, y3, CRGB(255, 255, 255));
+    }
+  }
+}
+// ============= ЭФФЕКТ ПРИЗМАТА ===============
+// Prismata Loading Animation
+// https://github.com/pixelmatix/aurora/blob/master/PatternPendulumWave.h
+// Адаптация от (c) SottNick
+
+void PrismataRoutine() {
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette(palette);
+
+  } 
   
-        int n = 0;
+//  EVERY_N_MILLIS(33) { маловата задержочка
+    hue++; // используем переменную сдвига оттенка из функций радуги, чтобы не занимать память
+//  }
+  blurScreen(20); // @Palpalych посоветовал делать размытие
+  dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 3U);
 
-        switch (waveRotation) {
-            case 0:
-                for (uint8_t x = 0; x < WIDTH; x++) {
-                    n = quadwave8(x * 2 + waveTheta) / waveScale;
-                    drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
-                    if (waveCount != 1)
-                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
-                }
-                break;
-
-            case 1:
-                for (uint8_t y = 0; y < HEIGHT; y++) {
-                    n = quadwave8(y * 2 + waveTheta) / waveScale;
-                    drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
-                    if (waveCount != 1)
-                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
-                }
-                break;
-
-            case 2:
-                for (uint8_t x = 0; x < WIDTH; x++) {
-                    n = quadwave8(x * 2 - waveTheta) / waveScale;
-                    drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
-                    if (waveCount != 1)
-                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
-                }
-                break;
-
-            case 3:
-                for (uint8_t y = 0; y < HEIGHT; y++) {
-                    n = quadwave8(y * 2 - waveTheta) / waveScale;
-                    drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
-                    if (waveCount != 1)
-                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
-                }
-                break;
-        }
-
-
-        if (waveThetaUpdate >= waveThetaUpdateFrequency) {
-            waveThetaUpdate = 0;
-            waveTheta++;
-        }
-        else {
-            waveThetaUpdate++;
-        }
-
-        if (hueUpdate >= hueUpdateFrequency) {
-            hueUpdate = 0;
-            hue++;
-        }
-        else {
-            hueUpdate++;
-        }
-        }
+  for (uint8_t x = 0; x < WIDTH; x++)
+  {
+    //uint8_t y = beatsin8(x + 1, 0, HEIGHT-1); // это я попытался распотрошить данную функцию до исходного кода и вставить в неё регулятор скорости
+    // вместо 28 в оригинале было 280, умножения на .Speed не было, а вместо >>17 было (<<8)>>24. короче, оригинальная скорость достигается при бегунке .Speed=20
+    uint8_t beat = (GET_MILLIS() * (accum88(x + 1)) * 28 * modes[currentMode].Speed) >> 17;
+    uint8_t y = scale8(sin8(beat), HEIGHT-1);
+    //и получилось!!!
+    
+    drawPixelXY(x, y, ColorFromPalette(*curPalette, x * 7 + hue));
+  }
+}
 
 // ---------------------Огненная Лампа-------------------------------
 // Yaroslaw Turbin, 22.06.2020 

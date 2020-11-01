@@ -8,7 +8,7 @@ void effectsTick() {
         case 0 : sparklesRoutine();             break;
         case 1 : RainbowRoutine();              break;
         case 2 : fireRoutine();                 break;
-        case 3 : shadowsRoutine();              break;
+        case 3 : MetaBallsRoutine();            break;
         case 4 : madnessNoise();                break;
         case 5 : noise3D();                     break;
         case 6 : whiteLampRoutine();            break;
@@ -20,7 +20,7 @@ void effectsTick() {
         case 12: ballRoutine();                 break;
         case 13: ballsRoutine();                break;
         case 14: MunchRoutine();                break;
-        case 15: WaveRoutine();                 break;
+        case 15: PrismataRoutine();             break;
         case 16: LavaLampRoutine();             break;
       }
 #ifdef INDICATOR
