@@ -47,7 +47,7 @@ void sparklesRoutine()
     uint8_t y = random(0U, HEIGHT);
     if (getPixColorXY(x, y) == 0U)
     {
-      drawPixelXY(x, y,CHSV(random(0U, 255U), 255U, 255U));
+      drawPixelXY(x, y, CHSV(random(0U, 255U), 255U, 255U));
     }
   }
   fader(FADE_OUT_SPEED);
@@ -83,7 +83,7 @@ void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // новый фей
 // радуги 2D
 // ------------- Pадуга вертикальная/горизонтальная ----------------
 void rainbowHorVertRoutine(bool isVertical)
-{
+{ hue + 4;
   for (uint8_t i = 0U; i < (isVertical ? WIDTH : HEIGHT); i++)
   {
     CHSV thisColor = CHSV((uint8_t)(hue + i * modes[currentMode].Scale % 170), 255, 255);
@@ -97,15 +97,12 @@ void rainbowHorVertRoutine(bool isVertical)
 // ------------- Радуга диагональная -------------
 void RainbowRoutine()
 {
-  // коэф. влияния замаплен на скорость, 4 ползунок нафиг не нужен
-  hue += (6.0 * (modes[currentMode].Speed / 255.0) + 0.05 ); // скорость смещения цвета зависит от кривизны наклна линии, коэф. 6.0 и 0.05
-
   if (modes[currentMode].Scale < 85) {
     rainbowHorVertRoutine(false);
   } else if (modes[currentMode].Scale > 170) {
     rainbowHorVertRoutine(true);
   } else {
-
+    hue + 8;
     for (uint8_t i = 0U; i < WIDTH; i++)
     {
       for (uint8_t j = 0U; j < HEIGHT; j++)
@@ -210,10 +207,10 @@ void whiteLampRoutine()
 
     uint8_t centerY =  (uint8_t)round(HEIGHT / 2.0F) - 1U;// max((uint8_t)round(HEIGHT / 2.0F) - 1, 0); нахрена тут максимум было вычислять? для ленты?!
     uint8_t bottomOffset = (uint8_t)(!(HEIGHT & 0x01));// && (HEIGHT > 1)); и высота больше единицы. супер!                     // если высота матрицы чётная, линий с максимальной яркостью две, а линии с минимальной яркостью снизу будут смещены на один ряд
-    
+
     uint8_t fullRows =  centerY / 100.0 * modes[currentMode].Scale;
     uint8_t iPol = (centerY / 100.0 * modes[currentMode].Scale - fullRows) * 255;
-    
+
     for (int16_t y = centerY; y >= 0; y--)
     {
       CRGB color = CHSV(
@@ -276,14 +273,14 @@ void ballRoutine()
   if (loadingFlag)
   {
     loadingFlag = false;
-  
-  if (modes[currentMode].Scale <= 85) 
-    deltaValue = map(modes[currentMode].Scale, 1, 85, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
-  else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
-    deltaValue = map(modes[currentMode].Scale, 170, 86, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
-  else
-    deltaValue = map(modes[currentMode].Scale, 171, 255, 1U, max((uint8_t)min(WIDTH,HEIGHT) / 3, 1));
-    
+
+    if (modes[currentMode].Scale <= 85)
+      deltaValue = map(modes[currentMode].Scale, 1, 85, 1U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 1));
+    else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
+      deltaValue = map(modes[currentMode].Scale, 170, 86, 1U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 1));
+    else
+      deltaValue = map(modes[currentMode].Scale, 171, 255, 1U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 1));
+
     for (uint8_t i = 0U; i < 2U; i++)
     {
       coordB[i] = WIDTH / 2 * 10;
@@ -292,7 +289,7 @@ void ballRoutine()
     ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
   }
 
- 
+
   if ((modes[currentMode].Scale & 0x01))
     for (uint8_t i = 0U; i < deltaValue; i++)
       for (uint8_t j = 0U; j < deltaValue; j++)
@@ -305,8 +302,8 @@ void ballRoutine()
     {
       coordB[i] = 0;
       vectorB[i] = -vectorB[i];
-       ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
- 
+      ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+
     }
   }
   if (coordB[0U] > (int16_t)((WIDTH - deltaValue) * 10))
@@ -320,18 +317,18 @@ void ballRoutine()
   {
     coordB[1U] = (HEIGHT - deltaValue) * 10;
     vectorB[1U] = -vectorB[1U];
-      ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+    ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
 
   }
-  
-if (modes[currentMode].Scale <= 85)  // при масштабе до 85 выводим кубик без шлейфа
+
+  if (modes[currentMode].Scale <= 85)  // при масштабе до 85 выводим кубик без шлейфа
     memset8( leds, 0, NUM_LEDS * 3);
   else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
-    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) /255) + 30); // выводим кубик со шлейфом, длинна которого зависит от скорости.
+    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) / 255) + 30); // выводим кубик со шлейфом, длинна которого зависит от скорости.
   else
-    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) /255) + 15); // выводим кубик с длинным шлейфом, длинна которого зависит от скорости.
+    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) / 255) + 15); // выводим кубик с длинным шлейфом, длинна которого зависит от скорости.
 
-     
+
   for (uint8_t i = 0U; i < deltaValue; i++)
     for (uint8_t j = 0U; j < deltaValue; j++)
       leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = ballColor;
@@ -360,7 +357,7 @@ void ballsRoutine()
     }
   }
 
-    fader(TRACK_STEP);
+  fader(TRACK_STEP);
 
   // движение шариков
   for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
@@ -395,14 +392,14 @@ byte count = 0;
 byte direct = 1;
 byte flip = 0;
 byte generation = 0;
-void MunchRoutine() { 
+void MunchRoutine() {
   if (loadingFlag)
   { setCurrentPalette(palette);
     loadingFlag = false;
   }
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT; y++) {
-      drawPixelXY(x, y,(x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << 4) + generation) : CRGB::Black);
+      drawPixelXY(x, y, (x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << 4) + generation) : CRGB::Black);
     }
   }
 
@@ -424,7 +421,7 @@ void MunchRoutine() {
 
 // --------------------------- эффект МетаБолз ----------------------
 // https://gist.github.com/StefanPetrick/170fbf141390fafb9c0c76b8a0d34e54
-// Stefan Petrick's MetaBalls Effect mod by PalPalych for GyverLamp 
+// Stefan Petrick's MetaBalls Effect mod by PalPalych for GyverLamp
 /*
   Metaballs proof of concept by Stefan Petrick (mod by Palpalych for GyverLamp 27/02/2020)
   ...very rough 8bit math here...
@@ -432,12 +429,12 @@ void MunchRoutine() {
   https://www.gamedev.net/articles/programming/graphics/exploring-metaballs-and-isosurfaces-in-2d-r2556
 */
 void MetaBallsRoutine() {
-    if (loadingFlag)
-    {
-      loadingFlag = false;
-      setCurrentPalette(palette);
-    }
-      
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette(palette);
+  }
+
   float speed = modes[currentMode].Speed / 127.0;
 
   // get some 2 random moving points
@@ -504,11 +501,11 @@ void PrismataRoutine() {
     loadingFlag = false;
     setCurrentPalette(palette);
 
-  } 
-  
-//  EVERY_N_MILLIS(33) { маловата задержочка
-    hue++; // используем переменную сдвига оттенка из функций радуги, чтобы не занимать память
-//  }
+  }
+
+  //  EVERY_N_MILLIS(33) { маловата задержочка
+  hue++; // используем переменную сдвига оттенка из функций радуги, чтобы не занимать память
+  //  }
   blurScreen(20); // @Palpalych посоветовал делать размытие
   dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 3U);
 
@@ -517,23 +514,23 @@ void PrismataRoutine() {
     //uint8_t y = beatsin8(x + 1, 0, HEIGHT-1); // это я попытался распотрошить данную функцию до исходного кода и вставить в неё регулятор скорости
     // вместо 28 в оригинале было 280, умножения на .Speed не было, а вместо >>17 было (<<8)>>24. короче, оригинальная скорость достигается при бегунке .Speed=20
     uint8_t beat = (GET_MILLIS() * (accum88(x + 1)) * 28 * modes[currentMode].Speed) >> 17;
-    uint8_t y = scale8(sin8(beat), HEIGHT-1);
+    uint8_t y = scale8(sin8(beat), HEIGHT - 1);
     //и получилось!!!
-    
+
     drawPixelXY(x, y, ColorFromPalette(*curPalette, x * 7 + hue));
   }
 }
 
 // ---------------------Огненная Лампа-------------------------------
-// Yaroslaw Turbin, 22.06.2020 
+// Yaroslaw Turbin, 22.06.2020
 // https://vk.com/ldirko
 // https://pastebin.com/eKqe4zzA
 // доработки - kostyamat
 void fireRoutine() {
-if(loadingFlag){
-  setCurrentPalette(palette);
-  loadingFlag=false; 
-}
+  if (loadingFlag) {
+    setCurrentPalette(palette);
+    loadingFlag = false;
+  }
 
   uint8_t speedy = map(modes[currentMode].Speed, 1, 255, 255, 0);
   uint8_t _scale = modes[currentMode].Scale + 30;
@@ -541,13 +538,14 @@ if(loadingFlag){
   uint32_t a = millis();
   for (byte i = 0U; i < WIDTH; i++) {
     for (float j = 0.; j < HEIGHT; j++) {
-      drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));    }
+      drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
+    }
   }
 }
 
 //---------------Лаволампа------------------------------
 //Основа @SottNick
-//Оптимизация @Stepko 
+//Оптимизация @Stepko
 float ball[(WIDTH / 2) -  ((WIDTH - 1) & 0x01)][4];
 void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать не получается, будем попиксельно вырисовывать 2 варианта пузырей
   if (ball[l][3] == 2)
@@ -569,12 +567,12 @@ void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать 
 void LavaLampRoutine() {
   if (loadingFlag)
   { for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
-      ball[i][3] = random(1,3);
+      ball[i][3] = random(1, 3);
       ball[i][2] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
       ball[i][0] = 0;
       ball[i][1] = i * 2U + random8(2);
       if ( ball[i][2] == 0)
-      ball[i][2] = 1;     
+        ball[i][2] = 1;
     }
     loadingFlag = false;
     setCurrentPalette(palette);
@@ -598,4 +596,6 @@ void LavaLampRoutine() {
       ball[i][2] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
       ball[i][2] = -ball[i][2];
       ball[i][0] = HEIGHT - 1.01;
-    }}}
+    }
+  }
+}

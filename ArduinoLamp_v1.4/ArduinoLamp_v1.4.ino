@@ -13,14 +13,18 @@
 #include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
-struct {byte Brightness = 10;byte Speed = 30;byte Scale = 10;} modes[MODE_AMOUNT]; //настройки эффектов по умолчанию
+struct {
+  byte Brightness = 10;
+  byte Speed = 30;
+  byte Scale = 10;
+} modes[MODE_AMOUNT]; //настройки эффектов по умолчанию
 int8_t currentMode = 10;
 boolean loadingFlag = true;
 boolean ONflag = true;
 byte numHold;
 byte palette;
 unsigned long numHold_Timer = 0;
-unsigned long userTimer = 0UL;
+uint32_t DemTimer = 0UL;                      // тут будет храниться время следующего переключения эффекта
 
 
 void setup() {
@@ -54,4 +58,5 @@ void setup() {
 void loop() {
   effectsTick();
   buttonTick();
+  demoTick();
 }
