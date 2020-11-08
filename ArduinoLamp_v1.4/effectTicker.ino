@@ -2,15 +2,15 @@ uint32_t effTimer;
 byte ind;
 void effectsTick() {
   {
-    if (ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 7) ? 256-modes[currentMode].Speed : 50) ) {
+    if (ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 9) ? 256-modes[currentMode].Speed : 50) ) {
       effTimer = millis(); switch (currentMode) {
         //|номер   |название функции эффекта     |тоже надо|
         case 0 : sparklesRoutine();             break;
         case 1 : RainbowRoutine();              break;
         case 2 : fireRoutine();                 break;
-        case 3 : LavaLampRoutine();             break;
+        //case 3 : LavaLampRoutine();             break;
         case 4 : Noise3D();                     break;
-        case 5 : PrismataRoutine();             break;
+        //case 5 : PrismataRoutine();             break;
         case 6 : whiteLampRoutine();            break;
         case 7 : colorRoutine();                break;
         case 8 : colorsRoutine();               break;

@@ -24,7 +24,7 @@ void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
 uint8_t noise3d[NUM_LAYERSMAX][WIDTH][HEIGHT];
 extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
 static const TProgmemRGBPalette16 ZeebraColors_p FL_PROGMEM = {CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black};
-static const TProgmemRGBPalette16 HeatColors2_p FL_PROGMEM = {0x000000, 0x330000, 0x660000, 0x990000, 0xCC0000, 0xFF0000, 0xFF3300, 0xFF6600, 0xFF9900, 0xFFCC00, 0xFFFF00, 0xFFFF33, 0xFFFF66, 0xFFFF99, 0xFFFFCC, 0xFFFFFF};
+/*static const TProgmemRGBPalette16 HeatColors2_p FL_PROGMEM = {0x000000, 0x330000, 0x660000, 0x990000, 0xCC0000, 0xFF0000, 0xFF3300, 0xFF6600, 0xFF9900, 0xFFCC00, 0xFFFF00, 0xFFFF33, 0xFFFF66, 0xFFFF99, 0xFFFFCC, 0xFFFFFF};
 static const TProgmemRGBPalette16 WoodFireColors_p FL_PROGMEM = {CRGB::Black, 0x330e00, 0x661c00, 0x992900, 0xcc3700, CRGB::OrangeRed, 0xff5800, 0xff6b00, 0xff7f00, 0xff9200, CRGB::Orange, 0xffaf00, 0xffb900, 0xffc300, 0xffcd00, CRGB::Gold};             //* Orange
 static const TProgmemRGBPalette16 NormalFire_p FL_PROGMEM = {CRGB::Black, 0x330000, 0x660000, 0x990000, 0xcc0000, CRGB::Red, 0xff0c00, 0xff1800, 0xff2400, 0xff3000, 0xff3c00, 0xff4800, 0xff5400, 0xff6000, 0xff6c00, 0xff7800};                             // пытаюсь сделать что-то более приличное
 static const TProgmemRGBPalette16 NormalFire2_p FL_PROGMEM = {CRGB::Black, 0x560000, 0x6b0000, 0x820000, 0x9a0011, CRGB::FireBrick, 0xc22520, 0xd12a1c, 0xe12f17, 0xf0350f, 0xff3c00, 0xff6400, 0xff8300, 0xffa000, 0xffba00, 0xffd400};                      // пытаюсь сделать что-то более приличное
@@ -34,7 +34,7 @@ static const TProgmemRGBPalette16 CopperFireColors_p FL_PROGMEM = {CRGB::Black, 
 static const TProgmemRGBPalette16 AlcoholFireColors_p FL_PROGMEM = {CRGB::Black, 0x000033, 0x000066, 0x000099, 0x0000cc, CRGB::Blue, 0x0026ff, 0x004cff, 0x0073ff, 0x0099ff, CRGB::DeepSkyBlue, 0x1bc2fe, 0x36c5fd, 0x51c8fc, 0x6ccbfb, CRGB::LightSkyBlue};  //* Blue
 static const TProgmemRGBPalette16 RubidiumFireColors_p FL_PROGMEM = {CRGB::Black, 0x0f001a, 0x1e0034, 0x2d004e, 0x3c0068, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, 0x3c0084, 0x2d0086, 0x1e0087, 0x0f0089, CRGB::DarkBlue};        //* Indigo
 static const TProgmemRGBPalette16 PotassiumFireColors_p FL_PROGMEM = {CRGB::Black, 0x0f001a, 0x1e0034, 0x2d004e, 0x3c0068, CRGB::Indigo, 0x591694, 0x682da6, 0x7643b7, 0x855ac9, CRGB::MediumPurple, 0xa95ecd, 0xbe4bbe, 0xd439b0, 0xe926a1, CRGB::DeepPink}; //* Violet
-const TProgmemRGBPalette16 *palette_arr[] = {
+*/const TProgmemRGBPalette16 *palette_arr[] = {
   &PartyColors_p,
   &OceanColors_p,
   &LavaColors_p,
@@ -45,7 +45,7 @@ const TProgmemRGBPalette16 *palette_arr[] = {
   &RainbowColors_p,
   &RainbowStripeColors_p,
   &ZeebraColors_p,
-  &CopperFireColors_p,
+  /*&CopperFireColors_p,
   &SodiumFireColors_p,
   &PotassiumFireColors_p,
   &RubidiumFireColors_p,
@@ -54,7 +54,7 @@ const TProgmemRGBPalette16 *palette_arr[] = {
   &NormalFire_p,
   &HeatColors2_p,
   &NormalFire2_p,
-  &WoodFireColors_p,
+  &WoodFireColors_p,*/
 };
 const TProgmemRGBPalette16 *curPalette = palette_arr[0];
 void setCurrentPalette(uint8_t palIdx) {
@@ -446,7 +446,7 @@ void MunchRoutine() {
 // https://vk.com/ldirko
 // https://pastebin.com/eKqe4zzA
 // доработки - kostyamat
-void fireRoutine() {
+void FireRoutine() {
   if (loadingFlag) {
     setCurrentPalette(palette + 10);
     loadingFlag = false;
@@ -463,6 +463,129 @@ void fireRoutine() {
       else
         drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(HeatColors_p, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
     }
+  }
+}
+
+// -------------------------------------- огонь ---------------------------------------------
+unsigned char matrixValue[8][16];
+// эффект "огонь"
+#define SPARKLES 1        // вылетающие угольки вкл выкл
+unsigned char line[WIDTH];
+int pcnt = 0;
+
+//these values are substracetd from the generated values to give a shape to the animation
+const unsigned char valueMask[8][16] PROGMEM = {
+  {32 , 0  , 0  , 0  , 0  , 0  , 0  , 32 , 32 , 0  , 0  , 0  , 0  , 0  , 0  , 32 },
+  {64 , 0  , 0  , 0  , 0  , 0  , 0  , 64 , 64 , 0  , 0  , 0  , 0  , 0  , 0  , 64 },
+  {96 , 32 , 0  , 0  , 0  , 0  , 32 , 96 , 96 , 32 , 0  , 0  , 0  , 0  , 32 , 96 },
+  {128, 64 , 32 , 0  , 0  , 32 , 64 , 128, 128, 64 , 32 , 0  , 0  , 32 , 64 , 128},
+  {160, 96 , 64 , 32 , 32 , 64 , 96 , 160, 160, 96 , 64 , 32 , 32 , 64 , 96 , 160},
+  {192, 128, 96 , 64 , 64 , 96 , 128, 192, 192, 128, 96 , 64 , 64 , 96 , 128, 192},
+  {255, 160, 128, 96 , 96 , 128, 160, 255, 255, 160, 128, 96 , 96 , 128, 160, 255},
+  {255, 192, 160, 128, 128, 160, 192, 255, 255, 192, 160, 128, 128, 160, 192, 255}
+};
+
+//these are the hues for the fire,
+//should be between 0 (red) to about 25 (yellow)
+const unsigned char hueMask[8][16] PROGMEM = {
+  {1 , 11, 19, 25, 25, 22, 11, 1 , 1 , 11, 19, 25, 25, 22, 11, 1 },
+  {1 , 8 , 13, 19, 25, 19, 8 , 1 , 1 , 8 , 13, 19, 25, 19, 8 , 1 },
+  {1 , 8 , 13, 16, 19, 16, 8 , 1 , 1 , 8 , 13, 16, 19, 16, 8 , 1 },
+  {1 , 5 , 11, 13, 13, 13, 5 , 1 , 1 , 5 , 11, 13, 13, 13, 5 , 1 },
+  {1 , 5 , 11, 11, 11, 11, 5 , 1 , 1 , 5 , 11, 11, 11, 11, 5 , 1 },
+  {0 , 1 , 5 , 8 , 8 , 5 , 1 , 0 , 0 , 1 , 5 , 8 , 8 , 5 , 1 , 0 },
+  {0 , 0 , 1 , 5 , 5 , 1 , 0 , 0 , 0 , 0 , 1 , 5 , 5 , 1 , 0 , 0 },
+  {0 , 0 , 0 , 1 , 1 , 0 , 0 , 0 , 0 , 0 , 0 , 1 , 1 , 0 , 0 , 0 }
+};
+
+void fireRoutine() {
+  if (loadingFlag) {
+    loadingFlag = false;
+    //FastLED.clear();
+    generateLine();
+  }
+  if (pcnt >= 100) {
+    ShiftUp();
+    generateLine();
+    pcnt = 0;
+  }
+  drawFrame(pcnt);
+  pcnt += 30;
+}
+
+// Случайным образом генерирует следующую линию (matrix row)
+
+void generateLine() {
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    line[x] = random(64, 255);
+  }
+}
+
+void ShiftUp() {
+  for (uint8_t y = HEIGHT - 1; y > 0; y--) {
+    for (uint8_t x = 0; x < WIDTH; x++) {
+      uint8_t newX = x;
+      if (x > 15) newX = x - 15;
+      if (y > 7) continue;
+      matrixValue[y][newX] = matrixValue[y - 1][newX];
+    }
+  }
+
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    uint8_t newX = x;
+    if (x > 15) newX = x - 15;
+    matrixValue[0][newX] = line[newX];
+  }
+}
+
+// рисует кадр, интерполируя между 2 "ключевых кадров"
+// параметр pcnt - процент интерполяции
+
+void drawFrame(int pcnt) {
+  int nextv;
+
+  //each row interpolates with the one before it
+  for (unsigned char y = HEIGHT - 1; y > 0; y--) {
+    for (unsigned char x = 0; x < WIDTH; x++) {
+      uint8_t newX = x;
+      if (x > 15) newX = x - 15;
+      if (y < 8) {
+        nextv =
+          (((100.0 - pcnt) * matrixValue[y][newX]
+            + pcnt * matrixValue[y - 1][newX]) / 100.0)
+          - pgm_read_byte(&(valueMask[y][newX]));
+
+        CRGB color = CHSV(
+                       modes[1].Scale * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
+                       255, // S
+                       (uint8_t)max(0, nextv) // V
+                     );
+
+        leds[getPixelNumber(x, y)] = color;
+      } else if (y == 8 && SPARKLES) {
+        if (random(0, 20) == 0 && getPixColorXY(x, y - 1) != 0) drawPixelXY(x, y, getPixColorXY(x, y - 1));
+        else drawPixelXY(x, y, 0);
+      } else if (SPARKLES) {
+
+        // старая версия для яркости
+        if (getPixColorXY(x, y - 1) > 0)
+          drawPixelXY(x, y, getPixColorXY(x, y - 1));
+        else drawPixelXY(x, y, 0);
+
+      }
+    }
+  }
+
+  //Перавя стрка интерполируется со следующей "next" линией
+  for (unsigned char x = 0; x < WIDTH; x++) {
+    uint8_t newX = x;
+    if (x > 15) newX = x - 15;
+    CRGB color = CHSV(
+                   modes[1].Scale * 2.5 + pgm_read_byte(&(hueMask[0][newX])), // H
+                   255,           // S
+                   (uint8_t)(((100.0 - pcnt) * matrixValue[0][newX] + pcnt * line[newX]) / 100.0) // V
+                 );
+    leds[getPixelNumber(newX, 0)] = color;
   }
 }
 
