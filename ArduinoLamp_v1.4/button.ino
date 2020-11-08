@@ -54,7 +54,7 @@ void buttonTick() {
         changePower();
       }
       else if (touch.getClicks() == 4) {     // если было четырёхкратное нажатие на кнопку, то переключаем демо
-        if (palette >= 16) palette = 0;
+        if (palette >= 10) palette = 0;
         else palette ++;
         loadingFlag = true;
       }

@@ -20,19 +20,41 @@ void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
 {
   blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
 }
+#define NUM_LAYERSMAX 2
+uint8_t noise3d[NUM_LAYERSMAX][WIDTH][HEIGHT];
 extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
-extern const TProgmemRGBPalette16 ZeebraColors_p FL_PROGMEM = {CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black};
+static const TProgmemRGBPalette16 ZeebraColors_p FL_PROGMEM = {CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black};
+static const TProgmemRGBPalette16 HeatColors2_p FL_PROGMEM = {0x000000, 0x330000, 0x660000, 0x990000, 0xCC0000, 0xFF0000, 0xFF3300, 0xFF6600, 0xFF9900, 0xFFCC00, 0xFFFF00, 0xFFFF33, 0xFFFF66, 0xFFFF99, 0xFFFFCC, 0xFFFFFF};
+static const TProgmemRGBPalette16 WoodFireColors_p FL_PROGMEM = {CRGB::Black, 0x330e00, 0x661c00, 0x992900, 0xcc3700, CRGB::OrangeRed, 0xff5800, 0xff6b00, 0xff7f00, 0xff9200, CRGB::Orange, 0xffaf00, 0xffb900, 0xffc300, 0xffcd00, CRGB::Gold};             //* Orange
+static const TProgmemRGBPalette16 NormalFire_p FL_PROGMEM = {CRGB::Black, 0x330000, 0x660000, 0x990000, 0xcc0000, CRGB::Red, 0xff0c00, 0xff1800, 0xff2400, 0xff3000, 0xff3c00, 0xff4800, 0xff5400, 0xff6000, 0xff6c00, 0xff7800};                             // пытаюсь сделать что-то более приличное
+static const TProgmemRGBPalette16 NormalFire2_p FL_PROGMEM = {CRGB::Black, 0x560000, 0x6b0000, 0x820000, 0x9a0011, CRGB::FireBrick, 0xc22520, 0xd12a1c, 0xe12f17, 0xf0350f, 0xff3c00, 0xff6400, 0xff8300, 0xffa000, 0xffba00, 0xffd400};                      // пытаюсь сделать что-то более приличное
+static const TProgmemRGBPalette16 LithiumFireColors_p FL_PROGMEM = {CRGB::Black, 0x240707, 0x470e0e, 0x6b1414, 0x8e1b1b, CRGB::FireBrick, 0xc14244, 0xd16166, 0xe08187, 0xf0a0a9, CRGB::Pink, 0xff9ec0, 0xff7bb5, 0xff59a9, 0xff369e, CRGB::DeepPink};        //* Red
+static const TProgmemRGBPalette16 SodiumFireColors_p FL_PROGMEM = {CRGB::Black, 0x332100, 0x664200, 0x996300, 0xcc8400, CRGB::Orange, 0xffaf00, 0xffb900, 0xffc300, 0xffcd00, CRGB::Gold, 0xf8cd06, 0xf0c30d, 0xe9b913, 0xe1af1a, CRGB::Goldenrod};           //* Yellow
+static const TProgmemRGBPalette16 CopperFireColors_p FL_PROGMEM = {CRGB::Black, 0x001a00, 0x003300, 0x004d00, 0x006600, CRGB::Green, 0x239909, 0x45b313, 0x68cc1c, 0x8ae626, CRGB::GreenYellow, 0x94f530, 0x7ceb30, 0x63e131, 0x4bd731, CRGB::LimeGreen};     //* Green
+static const TProgmemRGBPalette16 AlcoholFireColors_p FL_PROGMEM = {CRGB::Black, 0x000033, 0x000066, 0x000099, 0x0000cc, CRGB::Blue, 0x0026ff, 0x004cff, 0x0073ff, 0x0099ff, CRGB::DeepSkyBlue, 0x1bc2fe, 0x36c5fd, 0x51c8fc, 0x6ccbfb, CRGB::LightSkyBlue};  //* Blue
+static const TProgmemRGBPalette16 RubidiumFireColors_p FL_PROGMEM = {CRGB::Black, 0x0f001a, 0x1e0034, 0x2d004e, 0x3c0068, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, 0x3c0084, 0x2d0086, 0x1e0087, 0x0f0089, CRGB::DarkBlue};        //* Indigo
+static const TProgmemRGBPalette16 PotassiumFireColors_p FL_PROGMEM = {CRGB::Black, 0x0f001a, 0x1e0034, 0x2d004e, 0x3c0068, CRGB::Indigo, 0x591694, 0x682da6, 0x7643b7, 0x855ac9, CRGB::MediumPurple, 0xa95ecd, 0xbe4bbe, 0xd439b0, 0xe926a1, CRGB::DeepPink}; //* Violet
 const TProgmemRGBPalette16 *palette_arr[] = {
   &PartyColors_p,
   &OceanColors_p,
   &LavaColors_p,
   &HeatColors_p,
-  &ZeebraColors_p,
   &WaterfallColors_p,
   &CloudColors_p,
   &ForestColors_p,
   &RainbowColors_p,
   &RainbowStripeColors_p,
+  &ZeebraColors_p,
+  &CopperFireColors_p,
+  &SodiumFireColors_p,
+  &PotassiumFireColors_p,
+  &RubidiumFireColors_p,
+  &AlcoholFireColors_p,
+  &LithiumFireColors_p,
+  &NormalFire_p,
+  &HeatColors2_p,
+  &NormalFire2_p,
+  &WoodFireColors_p,
 };
 const TProgmemRGBPalette16 *curPalette = palette_arr[0];
 void setCurrentPalette(uint8_t palIdx) {
@@ -419,108 +441,6 @@ void MunchRoutine() {
   generation++;
 }
 
-// --------------------------- эффект МетаБолз ----------------------
-// https://gist.github.com/StefanPetrick/170fbf141390fafb9c0c76b8a0d34e54
-// Stefan Petrick's MetaBalls Effect mod by PalPalych for GyverLamp
-/*
-  Metaballs proof of concept by Stefan Petrick (mod by Palpalych for GyverLamp 27/02/2020)
-  ...very rough 8bit math here...
-  read more about the concept of isosurfaces and metaballs:
-  https://www.gamedev.net/articles/programming/graphics/exploring-metaballs-and-isosurfaces-in-2d-r2556
-*/
-void MetaBallsRoutine() {
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    setCurrentPalette(palette);
-  }
-
-  float speed = modes[currentMode].Speed / 127.0;
-
-  // get some 2 random moving points
-  uint16_t param1 = millis() * speed;
-  uint8_t x2 = inoise8(param1, 25355, 685 ) / WIDTH;
-  uint8_t y2 = inoise8(param1, 355, 11685 ) / HEIGHT;
-
-  uint8_t x3 = inoise8(param1, 55355, 6685 ) / WIDTH;
-  uint8_t y3 = inoise8(param1, 25355, 22685 ) / HEIGHT;
-
-  // and one Lissajou function
-  uint8_t x1 = beatsin8(23 * speed, 0, WIDTH - 1U);
-  uint8_t y1 = beatsin8(28 * speed, 0, HEIGHT - 1U);
-
-  for (uint8_t y = 0; y < HEIGHT; y++) {
-    for (uint8_t x = 0; x < WIDTH; x++) {
-
-      // calculate distances of the 3 points from actual pixel
-      // and add them together with weightening
-      uint8_t  dx =  abs(x - x1);
-      uint8_t  dy =  abs(y - y1);
-      uint8_t dist = 2 * sqrt((dx * dx) + (dy * dy));
-
-      dx =  abs(x - x2);
-      dy =  abs(y - y2);
-      dist += sqrt((dx * dx) + (dy * dy));
-
-      dx =  abs(x - x3);
-      dy =  abs(y - y3);
-      dist += sqrt((dx * dx) + (dy * dy));
-
-      // inverse result
-      //byte color = modes[currentMode].Speed * 10 / dist;
-      //byte color = 1000U / dist; кажется, проблема была именно тут в делении на ноль
-      byte color = (dist == 0) ? 255U : 1000U / dist;
-
-      // map color between thresholds
-      if (color > 0 && color < 60) {
-        if (modes[currentMode].Scale == 100U)
-          drawPixelXY(x, y, CHSV(color * 9, 255, 255));// это оригинальный цвет эффекта
-        else
-          drawPixelXY(x, y, ColorFromPalette(*curPalette, color * 9));
-      } else {
-        if (modes[currentMode].Scale == 100U)
-          drawPixelXY(x, y, CHSV(0, 255, 255)); // в оригинале центральный глаз почему-то красный
-        else
-          drawPixelXY(x, y, ColorFromPalette(*curPalette, 0U));
-      }
-      // show the 3 points, too
-      drawPixelXY(x1, y1, CRGB(255, 255, 255));
-      drawPixelXY(x2, y2, CRGB(255, 255, 255));
-      drawPixelXY(x3, y3, CRGB(255, 255, 255));
-    }
-  }
-}
-// ============= ЭФФЕКТ ПРИЗМАТА ===============
-// Prismata Loading Animation
-// https://github.com/pixelmatix/aurora/blob/master/PatternPendulumWave.h
-// Адаптация от (c) SottNick
-
-void PrismataRoutine() {
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    setCurrentPalette(palette);
-
-  }
-
-  //  EVERY_N_MILLIS(33) { маловата задержочка
-  hue++; // используем переменную сдвига оттенка из функций радуги, чтобы не занимать память
-  //  }
-  blurScreen(20); // @Palpalych посоветовал делать размытие
-  dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 3U);
-
-  for (uint8_t x = 0; x < WIDTH; x++)
-  {
-    //uint8_t y = beatsin8(x + 1, 0, HEIGHT-1); // это я попытался распотрошить данную функцию до исходного кода и вставить в неё регулятор скорости
-    // вместо 28 в оригинале было 280, умножения на .Speed не было, а вместо >>17 было (<<8)>>24. короче, оригинальная скорость достигается при бегунке .Speed=20
-    uint8_t beat = (GET_MILLIS() * (accum88(x + 1)) * 28 * modes[currentMode].Speed) >> 17;
-    uint8_t y = scale8(sin8(beat), HEIGHT - 1);
-    //и получилось!!!
-
-    drawPixelXY(x, y, ColorFromPalette(*curPalette, x * 7 + hue));
-  }
-}
-
 // ---------------------Огненная Лампа-------------------------------
 // Yaroslaw Turbin, 22.06.2020
 // https://vk.com/ldirko
@@ -528,7 +448,7 @@ void PrismataRoutine() {
 // доработки - kostyamat
 void fireRoutine() {
   if (loadingFlag) {
-    setCurrentPalette(palette);
+    setCurrentPalette(palette + 10);
     loadingFlag = false;
   }
 
@@ -538,7 +458,10 @@ void fireRoutine() {
   uint32_t a = millis();
   for (byte i = 0U; i < WIDTH; i++) {
     for (float j = 0.; j < HEIGHT; j++) {
-      drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
+      if (palette <= 10)
+        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
+      else
+        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(HeatColors_p, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
     }
   }
 }
@@ -581,7 +504,11 @@ void LavaLampRoutine() {
   blurScreen(20);
   for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
     // Draw 'ball'
-    drawBlob(i, ColorFromPalette(*curPalette, ball[i][0] * 16));
+    if (palette <= 12)
+      drawBlob(i, ColorFromPalette(*curPalette, ball[i][0] * 16));
+    else
+      drawBlob(i, CHSV(modes[currentMode].Scale, 255, 255));
+
     if (ball[i][0] + ball[i][3] >= HEIGHT - 1)
       ball[i][0] += (ball[i][2] * ((HEIGHT - 1 - ball[i][0]) / ball[i][3] + 0.005));
     else if (ball[i][0] - ball[i][3] <= 0)
@@ -598,4 +525,27 @@ void LavaLampRoutine() {
       ball[i][0] = HEIGHT - 1.01;
     }
   }
+}
+// ============= ЭФФЕКТ ПРИЗМАТА ===============
+// Prismata Loading Animation
+// https://github.com/pixelmatix/aurora/blob/master/PatternPendulumWave.h
+// Адаптация от (c) SottNick
+
+void PrismataRoutine() {
+  if (loadingFlag)
+  {
+    loadingFlag = false;
+    setCurrentPalette(palette);
+
+  } 
+  
+
+    hue += 1;
+
+  fadeToBlackBy(leds, NUM_LEDS, 256U - modes[currentMode].Scale); // делаем шлейф
+
+  for (float x = 0.0f; x <= (float)WIDTH - 1; x += 0.25f) {
+      float y = (float)beatsin8((uint8_t)x + 1 * (float)modes[currentMode].Speed / 2.0f, 0, (HEIGHT-1)* 4) / 4.0f;
+  drawPixelXYF(x, y, ColorFromPalette(*curPalette, hue));
+    }
 }

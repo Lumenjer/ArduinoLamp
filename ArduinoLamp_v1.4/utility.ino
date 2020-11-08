@@ -1,21 +1,26 @@
 
-void dimAll(uint8_t value) { 
-    fadeToBlackBy (leds, NUM_LEDS, 255U - value);}
+void dimAll(uint8_t value) {
+  fadeToBlackBy (leds, NUM_LEDS, 255U - value);
+}
 
-static float fmap(const float x, const float in_min, const float in_max, const float out_min, const float out_max){
-        return (out_max - out_min) * (x - in_min) / (in_max - in_min) + out_min;
-    }
+static float fmap(const float x, const float in_min, const float in_max, const float out_min, const float out_max) {
+  return (out_max - out_min) * (x - in_min) / (in_max - in_min) + out_min;
+}
 
-void shiftDown(){
+void shiftDown() {
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT - 1; y++) {
       drawPixelXY(x, y, getPixColorXY(x, y + 1));
-    }}}
+    }
+  }
+}
 void shiftUp() {
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = HEIGHT; y > 0; y--) {
-      drawPixelXY(x, y,getPixColorXY(x, y - 1));
-    }}}   
+      drawPixelXY(x, y, getPixColorXY(x, y - 1));
+    }
+  }
+}
 // залить все
 void fillAll(CRGB color) {
   for (int i = 0; i < NUM_LEDS; i++) {
@@ -102,7 +107,7 @@ uint16_t XY(uint8_t x, uint8_t y)
 {
   if (!(THIS_Y & 0x01) || MATRIX_TYPE)               // Even rows run forwards
     return (THIS_Y * _WIDTH + THIS_X);
-  else                                                  
+  else
     return (THIS_Y * _WIDTH + _WIDTH - THIS_X - 1);  // Odd rows run backwards
 }
 
@@ -113,19 +118,20 @@ uint16_t getPixelNumber(uint8_t x, uint8_t y)
 }
 void drawPixelXYF(float x, float y, const CRGB &color)
 {
-  if (x<0 || y<0 || x>((float)WIDTH-1) || y>((float)HEIGHT-1)) return;
+  if (x < 0 || y < 0 || x > ((float)WIDTH - 1) || y > ((float)HEIGHT - 1)) return;
 
   // extract the fractional parts and derive their inverses
   uint8_t xx = (x - (int)x) * 255, yy = (y - (int)y) * 255, ix = 255 - xx, iy = 255 - yy;
   // calculate the intensities for each affected pixel
-  #define WU_WEIGHT(a,b) ((uint8_t) (((a)*(b)+(a)+(b))>>8))
+#define WU_WEIGHT(a,b) ((uint8_t) (((a)*(b)+(a)+(b))>>8))
   uint8_t wu[4] = {WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy),
-                   WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)};
+                   WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)
+                  };
   // multiply the intensities by the colour, and saturating-add them to the pixels
   for (uint8_t i = 0; i < 4; i++) {
     int16_t xn = x + (i & 1), yn = y + ((i >> 1) & 1);
     CRGB clr = getPixColorXY(xn, yn);
-    if(xn<(int)WIDTH-1 && yn<(int)HEIGHT-1 && yn>0 && xn>0){
+    if (xn < (int)WIDTH - 1 && yn < (int)HEIGHT - 1 && yn > 0 && xn > 0) {
       clr.r = qadd8(clr.r, (color.r * wu[i]) >> 8);
       clr.g = qadd8(clr.g, (color.g * wu[i]) >> 8);
       clr.b = qadd8(clr.b, (color.b * wu[i]) >> 8);
@@ -136,5 +142,5 @@ void drawPixelXYF(float x, float y, const CRGB &color)
     }
     drawPixelXY(xn, yn, clr);
   }
-  #undef WU_WEIGHT
+#undef WU_WEIGHT
 }

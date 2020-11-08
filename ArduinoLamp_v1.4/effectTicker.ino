@@ -2,28 +2,23 @@ uint32_t effTimer;
 byte ind;
 void effectsTick() {
   {
-    if (ONflag && millis() - effTimer >= ((currentMode < 2 || currentMode > 9) ? modes[currentMode].Speed : 50) ) {
+    if (ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 9) ? 256-modes[currentMode].Speed : 50) ) {
       effTimer = millis(); switch (currentMode) {
         //|номер   |название функции эффекта     |тоже надо|
         case 0 : sparklesRoutine();             break;
         case 1 : RainbowRoutine();              break;
         case 2 : fireRoutine();                 break;
         case 3 : LavaLampRoutine();             break;
-        case 4 : PrismataRoutine();             break;
-        case 5 : MetaBallsRoutine();            break;
-        case 6 : madnessNoise();                break;
-        case 7 : noise3D();                     break;
-        case 8 : whiteLampRoutine();            break;
-        case 9 : colorRoutine();                break;
-        case 10: colorsRoutine();               break;
-        case 11: matrixRoutine();               break;
-        case 12: snowRoutine();                 break;
-        case 13: stormRoutine();                break;
-        case 14: ballRoutine();                 break;
-        case 15: ballsRoutine();                break;
-        case 16: MunchRoutine();                break;
-
-
+        case 4 : Noise3D();                     break;
+        case 5 : PrismataRoutine();             break;
+        case 6 : whiteLampRoutine();            break;
+        case 7 : colorRoutine();                break;
+        case 8 : colorsRoutine();               break;
+        case 9 : matrixRoutine();               break;
+        case 10: snowRoutine();                 break;
+        case 11: stormRoutine();                break;
+        case 12: ballRoutine();                 break;
+        case 13: ballsRoutine();                break;
       }
 #ifdef INDICATOR
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
