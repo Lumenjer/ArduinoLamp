@@ -7,10 +7,10 @@ void effectsTick() {
         //|номер   |название функции эффекта     |тоже надо|
         case 0 : sparklesRoutine();             break;
         case 1 : RainbowRoutine();              break;
-        case 2 : fireRoutine();                 break;
-        //case 3 : LavaLampRoutine();             break;
+        case 2 : FireRoutine();                 break;//Новый-Fire.. Старый fire...
+        case 3 : LavaLampRoutine();             break;
         case 4 : Noise3D();                     break;
-        //case 5 : PrismataRoutine();             break;
+        case 5 : PrismataRoutine();             break;
         case 6 : whiteLampRoutine();            break;
         case 7 : colorRoutine();                break;
         case 8 : colorsRoutine();               break;

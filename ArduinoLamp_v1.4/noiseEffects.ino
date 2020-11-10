@@ -32,7 +32,7 @@ void Noise3D()
       colorLoop = 0;
     else colorLoop = 1;
   }
-  if (palette<=10)
+  if (palette<=9)
   fillNoiseLED();
   else{
     fillnoise8();

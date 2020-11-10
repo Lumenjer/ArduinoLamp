@@ -19,7 +19,7 @@
 // ============= ДЛЯ РАЗРАБОТЧИКОВ =============
 #define LED_PIN 6             // пин ленты
 #define BTN_PIN 2             // пин кнопки
-#define MODE_AMOUNT 16        //кол-во эффектов
+#define MODE_AMOUNT 14        //кол-во эффектов
 #define NUM_LEDS WIDTH * HEIGHT
 #define SEGMENTS 1             // диодов в одном "пикселе" (для создания матрицы из кусков ленты)
 #define INDICATOR              // Индикатор(Плохи на малых матрицах)(Не нужен, коментируйте)

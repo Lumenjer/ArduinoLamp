@@ -20,11 +20,9 @@ void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
 {
   blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
 }
-#define NUM_LAYERSMAX 2
-uint8_t noise3d[NUM_LAYERSMAX][WIDTH][HEIGHT];
 extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
 static const TProgmemRGBPalette16 ZeebraColors_p FL_PROGMEM = {CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black};
-/*static const TProgmemRGBPalette16 HeatColors2_p FL_PROGMEM = {0x000000, 0x330000, 0x660000, 0x990000, 0xCC0000, 0xFF0000, 0xFF3300, 0xFF6600, 0xFF9900, 0xFFCC00, 0xFFFF00, 0xFFFF33, 0xFFFF66, 0xFFFF99, 0xFFFFCC, 0xFFFFFF};
+static const TProgmemRGBPalette16 HeatColors2_p FL_PROGMEM = {0x000000, 0x330000, 0x660000, 0x990000, 0xCC0000, 0xFF0000, 0xFF3300, 0xFF6600, 0xFF9900, 0xFFCC00, 0xFFFF00, 0xFFFF33, 0xFFFF66, 0xFFFF99, 0xFFFFCC, 0xFFFFFF};
 static const TProgmemRGBPalette16 WoodFireColors_p FL_PROGMEM = {CRGB::Black, 0x330e00, 0x661c00, 0x992900, 0xcc3700, CRGB::OrangeRed, 0xff5800, 0xff6b00, 0xff7f00, 0xff9200, CRGB::Orange, 0xffaf00, 0xffb900, 0xffc300, 0xffcd00, CRGB::Gold};             //* Orange
 static const TProgmemRGBPalette16 NormalFire_p FL_PROGMEM = {CRGB::Black, 0x330000, 0x660000, 0x990000, 0xcc0000, CRGB::Red, 0xff0c00, 0xff1800, 0xff2400, 0xff3000, 0xff3c00, 0xff4800, 0xff5400, 0xff6000, 0xff6c00, 0xff7800};                             // пытаюсь сделать что-то более приличное
 static const TProgmemRGBPalette16 NormalFire2_p FL_PROGMEM = {CRGB::Black, 0x560000, 0x6b0000, 0x820000, 0x9a0011, CRGB::FireBrick, 0xc22520, 0xd12a1c, 0xe12f17, 0xf0350f, 0xff3c00, 0xff6400, 0xff8300, 0xffa000, 0xffba00, 0xffd400};                      // пытаюсь сделать что-то более приличное
@@ -34,7 +32,7 @@ static const TProgmemRGBPalette16 CopperFireColors_p FL_PROGMEM = {CRGB::Black, 
 static const TProgmemRGBPalette16 AlcoholFireColors_p FL_PROGMEM = {CRGB::Black, 0x000033, 0x000066, 0x000099, 0x0000cc, CRGB::Blue, 0x0026ff, 0x004cff, 0x0073ff, 0x0099ff, CRGB::DeepSkyBlue, 0x1bc2fe, 0x36c5fd, 0x51c8fc, 0x6ccbfb, CRGB::LightSkyBlue};  //* Blue
 static const TProgmemRGBPalette16 RubidiumFireColors_p FL_PROGMEM = {CRGB::Black, 0x0f001a, 0x1e0034, 0x2d004e, 0x3c0068, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, CRGB::Indigo, 0x3c0084, 0x2d0086, 0x1e0087, 0x0f0089, CRGB::DarkBlue};        //* Indigo
 static const TProgmemRGBPalette16 PotassiumFireColors_p FL_PROGMEM = {CRGB::Black, 0x0f001a, 0x1e0034, 0x2d004e, 0x3c0068, CRGB::Indigo, 0x591694, 0x682da6, 0x7643b7, 0x855ac9, CRGB::MediumPurple, 0xa95ecd, 0xbe4bbe, 0xd439b0, 0xe926a1, CRGB::DeepPink}; //* Violet
-*/const TProgmemRGBPalette16 *palette_arr[] = {
+const TProgmemRGBPalette16 *palette_arr[] = {
   &PartyColors_p,
   &OceanColors_p,
   &LavaColors_p,
@@ -45,16 +43,16 @@ static const TProgmemRGBPalette16 PotassiumFireColors_p FL_PROGMEM = {CRGB::Blac
   &RainbowColors_p,
   &RainbowStripeColors_p,
   &ZeebraColors_p,
-  /*&CopperFireColors_p,
+  &NormalFire_p,
+  &HeatColors2_p,
+  &NormalFire2_p,
+  &CopperFireColors_p,
   &SodiumFireColors_p,
   &PotassiumFireColors_p,
   &RubidiumFireColors_p,
   &AlcoholFireColors_p,
   &LithiumFireColors_p,
-  &NormalFire_p,
-  &HeatColors2_p,
-  &NormalFire2_p,
-  &WoodFireColors_p,*/
+  &WoodFireColors_p,
 };
 const TProgmemRGBPalette16 *curPalette = palette_arr[0];
 void setCurrentPalette(uint8_t palIdx) {
@@ -152,7 +150,7 @@ void colorRoutine() {
   }
 }
 
-// ------------------------------ снегопад 2.0 --------------------------------
+// ------------------------------ снегопад 2.5 --------------------------------
 void snowRoutine() {
   shiftDown();
 
@@ -160,7 +158,7 @@ void snowRoutine() {
     // заполняем случайно верхнюю строку
     // а также не даём двум блокам по вертикали вместе быть
     if (getPixColorXY(x, HEIGHT - 2) == 0 && (random(0, modes[currentMode].Scale) == 0))
-      drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4));
+      drawPixelXY(x, HEIGHT - 1U, CHSV(0, 0, random(50, 255)));
     else
       drawPixelXY(x, HEIGHT - 1, 0x000000);
   }
@@ -409,63 +407,6 @@ void ballsRoutine()
   }
 }
 
-//-----------------Эффект Вышиванка-------------
-byte count = 0;
-byte direct = 1;
-byte flip = 0;
-byte generation = 0;
-void MunchRoutine() {
-  if (loadingFlag)
-  { setCurrentPalette(palette);
-    loadingFlag = false;
-  }
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = 0; y < HEIGHT; y++) {
-      drawPixelXY(x, y, (x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << 4) + generation) : CRGB::Black);
-    }
-  }
-
-  count += direct;
-
-  if (count <= 0 || count >= WIDTH) {
-    direct = -direct;
-  }
-
-  if (count <= 0) {
-    if (flip == 0)
-      flip = 7;
-    else
-      flip = 0;
-  }
-
-  generation++;
-}
-
-// ---------------------Огненная Лампа-------------------------------
-// Yaroslaw Turbin, 22.06.2020
-// https://vk.com/ldirko
-// https://pastebin.com/eKqe4zzA
-// доработки - kostyamat
-void FireRoutine() {
-  if (loadingFlag) {
-    setCurrentPalette(palette + 10);
-    loadingFlag = false;
-  }
-
-  uint8_t speedy = map(modes[currentMode].Speed, 1, 255, 255, 0);
-  uint8_t _scale = modes[currentMode].Scale + 30;
-
-  uint32_t a = millis();
-  for (byte i = 0U; i < WIDTH; i++) {
-    for (float j = 0.; j < HEIGHT; j++) {
-      if (palette <= 10)
-        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
-      else
-        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(HeatColors_p, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
-    }
-  }
-}
-
 // -------------------------------------- огонь ---------------------------------------------
 unsigned char matrixValue[8][16];
 // эффект "огонь"
@@ -588,6 +529,30 @@ void drawFrame(int pcnt) {
     leds[getPixelNumber(newX, 0)] = color;
   }
 }
+// ---------------------Огненная Лампа-------------------------------
+// Yaroslaw Turbin, 22.06.2020
+// https://vk.com/ldirko
+// https://pastebin.com/eKqe4zzA
+// доработки - kostyamat
+void FireRoutine() {
+  if (loadingFlag) {
+    setCurrentPalette(palette + 10);
+    loadingFlag = false;
+  }
+
+  uint8_t speedy = map(modes[currentMode].Speed, 1, 255, 255, 0);
+  uint8_t _scale = modes[currentMode].Scale + 30;
+
+  uint32_t a = millis();
+  for (byte i = 0U; i < WIDTH; i++) {
+    for (float j = 0.; j < HEIGHT; j++) {
+      if (palette <= 9)
+        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
+      else
+        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(HeatColors_p, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
+    }
+  }
+}
 
 //---------------Лаволампа------------------------------
 //Основа @SottNick
@@ -627,7 +592,7 @@ void LavaLampRoutine() {
   blurScreen(20);
   for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
     // Draw 'ball'
-    if (palette <= 12)
+    if (palette <= 9)
       drawBlob(i, ColorFromPalette(*curPalette, ball[i][0] * 16));
     else
       drawBlob(i, CHSV(modes[currentMode].Scale, 255, 255));
