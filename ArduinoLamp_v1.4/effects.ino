@@ -545,7 +545,7 @@ void FireRoutine() {
 
   uint32_t a = millis();
   for (byte i = 0U; i < WIDTH; i++) {
-    for (float j = 0.; j < HEIGHT; j++) {
+    for (byte j = 0U; j < HEIGHT; j++) {
       if (palette <= 9)
         drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
       else
