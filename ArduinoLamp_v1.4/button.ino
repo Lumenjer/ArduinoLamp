@@ -79,7 +79,7 @@ void buttonTick() {
       if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
       switch (numHold) {
         case 1:
-          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (brightDirection * 2 - 1), 1 , 255);
+          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (brightDirection * 2 - 1), 1 , BRIGHTNESS);
           break;
         case 2:
           modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (speedDirection * 2 - 1), 1 , 255);
