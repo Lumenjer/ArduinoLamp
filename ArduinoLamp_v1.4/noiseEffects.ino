@@ -20,19 +20,20 @@ CRGBPalette16 currentPalette(PartyColors_p);
 uint8_t colorLoop = 1;
 uint8_t ihue = 0;
 
+//------------Шумы 3Д------------------
 void Noise3D()
 {
   if (loadingFlag)
-  { setCurrentPalette(palette);
+  { setCurrentPalette(map(palette,1,255,1,20));
     loadingFlag = false;
+    scale = map(Scale,1,255,1,100);
+    speed = map(Scale,1,255,1,155);
     currentPalette = *curPalette;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
-    if (modes[currentMode].Speed % 2)
+    if (Speed % 2)
       colorLoop = 0;
     else colorLoop = 1;
   }
-  if (palette<=9)
+  if (palette<=255)
   fillNoiseLED();
   else{
     fillnoise8();
