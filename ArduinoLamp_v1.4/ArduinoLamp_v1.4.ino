@@ -6,13 +6,9 @@
   https://AlexGyver.ru/
 */
 // ---------------- БИБЛИОТЕКИ -----------------
-#include <EEPROM.h>
 #include <FastLED.h>
-#include <GyverButtonOld.h>
-//-----------------            -----------------
-#include "Constants.h"
 // ----------------- ПЕРЕМЕННЫЕ ------------------
-static const byte maxDim = max(WIDTH, HEIGHT);
+#include "Constants.h"
 struct {
   byte Brightness = 10;
   byte Speed = 30;
@@ -21,10 +17,48 @@ struct {
 int8_t currentMode = 10;
 boolean loadingFlag = true;
 boolean ONflag = true;
+boolean ir_flag = false;
 byte numHold;
 byte palette;
 unsigned long numHold_Timer = 0;
 uint32_t DemTimer = 0UL;                      // тут будет храниться время следующего переключения эффекта
+//-------------------------------------------------------------
+void changePower() {    // плавное включение/выключение
+  if (ONflag) {
+    effectsTick();
+    for (int i = 0; i < modes[currentMode].Brightness; i += 8) {
+      FastLED.setBrightness(i);
+      delay(1);
+      FastLED.show();
+    }
+    FastLED.setBrightness(modes[currentMode].Brightness);
+    delay(2);
+    FastLED.show();
+  } else {
+    effectsTick();
+    for (int i = modes[currentMode].Brightness; i > 8; i -= 8) {
+      FastLED.setBrightness(i);
+      delay(1);
+      FastLED.show();
+    }
+    memset8( leds, 0, NUM_LEDS * 3);
+    delay(2);
+    FastLED.show();
+  }
+}
+#include <EEPROM.h>
+#if(CONTROL_TYPE == 0)
+#include <GyverButtonOld.h>
+#include "button.h"
+#endif
+#if(CONTROL_TYPE == 1)
+#include <IRLremote.h>
+CHashIR IRLremote;
+uint32_t IRdata;
+#include "IrControl.h"
+#endif
+// ----------------- ПЕРЕМЕННЫЕ ------------------
+static const byte maxDim = max(WIDTH, HEIGHT);
 
 
 void setup() {
@@ -38,9 +72,12 @@ void setup() {
   Serial.begin(9600);
   Serial.println();
 #endif
+#if(CONTROL_TYPE == 0)
   touch.setStepTimeout(100);
   touch.setClickTimeout(500);
-
+#elif(CONTROL_TYPE == 1)
+  IRLremote.begin(CONTROL_PIN);
+#endif
   //Serial.begin(9600);
   //Serial.println();
 
@@ -57,6 +94,6 @@ void setup() {
 
 void loop() {
   effectsTick();
-  buttonTick();
+  controlTick();
   demoTick();
 }

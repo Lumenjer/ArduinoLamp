@@ -49,30 +49,6 @@ void effectsTick() {
   }
 }
 
-void changePower() {    // плавное включение/выключение
-  if (ONflag) {
-    effectsTick();
-    for (int i = 0; i < modes[currentMode].Brightness; i += 8) {
-      FastLED.setBrightness(i);
-      delay(1);
-      FastLED.show();
-    }
-    FastLED.setBrightness(modes[currentMode].Brightness);
-    delay(2);
-    FastLED.show();
-  } else {
-    effectsTick();
-    for (int i = modes[currentMode].Brightness; i > 8; i -= 8) {
-      FastLED.setBrightness(i);
-      delay(1);
-      FastLED.show();
-    }
-    memset8( leds, 0, NUM_LEDS * 3);
-    delay(2);
-    FastLED.show();
-  }
-}
-
  void demoTick(){
   if (isDemo && ONflag && millis() >= DemTimer){
     if(RANDOM_DEMO)
