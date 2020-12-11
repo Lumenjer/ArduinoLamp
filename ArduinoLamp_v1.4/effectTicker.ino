@@ -6,18 +6,17 @@ void effectsTick() {
         case 0 : sparklesRoutine();             break;
         case 1 : RainbowRoutine();              break;
         case 2 : fireRoutine();                 break;
-        //case 3 : LavaLampRoutine();             break;
-        case 3 : Noise3D();                     break;
-        case 4 : TLandRoutine();                break;
+        case 3 : LavaLampRoutine();             break;
+        case 4 : Noise3D();                     break;
         case 5 : whiteLampRoutine();            break;
         case 6 : colorRoutine();                break;
         case 7 : colorsRoutine();               break;
         case 8 : ballRoutine();                 break;
         case 9 : ballsRoutine();                break;
         case 10: matrixRoutine();               break;
-        case 11: RainRoutine();                 break;
+        case 11: snowRoutine();                 break;
         case 12: stormRoutine();                break;
-        case 13: lightersRoutine();             break;
+        //case 14: lightersRoutine();             break;
       }
     }
     FastLED.show();

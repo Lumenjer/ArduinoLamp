@@ -56,7 +56,7 @@ void setCurrentPalette(uint8_t palIdx) {
   curPalette = palette_arr[palIdx];
 }
 //// ----------------------------- СВЕТЛЯКИ ------------------------------ в ардуине под него не хватет пямяти
-#define LIGHTERS_AM (WIDTH+HEIGHT)
+#define LIGHTERS_AM ((WIDTH+HEIGHT)/4)
 int16_t lightersPos[2][LIGHTERS_AM];
 int8_t lightersSpeed[2][LIGHTERS_AM];
 byte lightersColor[LIGHTERS_AM];
@@ -173,54 +173,67 @@ void colorRoutine() {
 }
 
 // ------------------------------ МАТРИЦА ------------------------------
-//@kostyamat
-void matrixRoutine() {
-  if (loadingFlag) {
-    randomSeed(millis());
-    for (uint8_t i = 0U; i < LIGHTERS_AM; i++)
-    {
-      lightersPos[0U][i] = random(0, WIDTH * 10);
-      lightersPos[1U][i] = random(HEIGHT * 10 - HEIGHT * 5, HEIGHT * 10);
-      lightersSpeed[0U][i] = 1;
-      lightersSpeed[1U][i] = random(1, 10);
-      lightersColor[i] = hue;
-      lightersBright[i] = random(196, 255);
-    } loadingFlag = false;
-  }
-  //float speedfactor = (float)Speed / 1048.0f + 0.05f;
-  dimAll(map(Speed, 1, 255, 250, 240));
-
-  CHSV color;
-
-  for (uint8_t i = 0U; i < map(Scale, 1, 255, 1, LIGHTERS_AM); i++)
+void matrixRoutine()
+{
+  for (uint8_t x = 0U; x < WIDTH; x++)
   {
-    lightersPos[1U][i] -= lightersSpeed[1U][i];
-
-    if(Scale%2) {
-      color = CHSV(++hue, 255, lightersBright[i]);
-    } else {
-      color = CHSV(89, 255, lightersBright[i]);
-    }
-
-
-    drawPixelXY(lightersPos[0U][i] / 10, lightersPos[1U][i] / 10, color);
-
-    if (palette > 1)
-      if (random8() < palette) {
-        lightersPos[0U][i] = lightersPos[0U][i] + random(10, 20);
-        lightersBright[i] = random(196, 255);
+    // обрабатываем нашу матрицу снизу вверх до второй сверху строчки
+    for (uint8_t y = 0U; y < HEIGHT - 1U; y++)
+    {
+      uint32_t thisColor = getPixColorXY(x, y);                                              // берём цвет нашего пикселя
+      uint32_t upperColor = getPixColorXY(x, y + 1U);                                        // берём цвет пикселя над нашим
+      if (upperColor >= 0x900000 && random(7 * HEIGHT) != 0U)                  // если выше нас максимальная яркость, игнорим этот факт с некой вероятностью или опускаем цепочку ниже
+        drawPixelXY(x, y, upperColor);
+      else if (thisColor == 0U && random((100 - Scale) * HEIGHT) == 0U)  // если наш пиксель ещё не горит, иногда зажигаем новые цепочки
+        //else if (thisColor == 0U && random((100 - modes[currentMode].Scale) * HEIGHT*3) == 0U)  // для длинных хвостов
+        drawPixelXY(x, y, 0x9bf800);
+      else if (thisColor <= 0x050800)                                                        // если наш пиксель почти погас, стараемся сделать затухание медленней
+      {
+        if (thisColor >= 0x030000)
+          drawPixelXY(x, y, 0x020300);
+        else if (thisColor != 0U)
+          drawPixelXY(x, y, 0U);
       }
-
-    if (lightersPos[1U][i] < -1) {
-      lightersPos[0U][i] = random(0, WIDTH*10);
-      lightersPos[1U][i] = random(HEIGHT * 10 - HEIGHT * 5, HEIGHT * 10);
-      lightersSpeed[1U][i] = random(1, 10);
-      lightersBright[i] = random(127U, 255U);
-      lightersColor[i] = hue;
+      else if (thisColor >= 0x900000)                                                        // если наш пиксель максимальной яркости, резко снижаем яркость
+        drawPixelXY(x, y, 0x558800);
+      else
+        drawPixelXY(x, y, thisColor - 0x0a1000);                                             // в остальных случаях снижаем яркость на 1 уровень
+      //drawPixelXY(x, y, thisColor - 0x050800);                                             // для длинных хвостов
     }
+    // аналогично обрабатываем верхний ряд пикселей матрицы
+    uint32_t thisColor = getPixColorXY(x, HEIGHT - 1U);
+    if (thisColor == 0U)                                                                     // если наш верхний пиксель не горит, заполняем его с вероятностью .Scale
+    {
+      if (random(100 - Scale) == 0U)
+        drawPixelXY(x, HEIGHT - 1U, 0x9bf800);
+    }
+    else if (thisColor <= 0x050800)                                                          // если наш верхний пиксель почти погас, стараемся сделать затухание медленней
+    {
+      if (thisColor >= 0x030000)
+        drawPixelXY(x, HEIGHT - 1U, 0x020300);
+      else
+        drawPixelXY(x, HEIGHT - 1U, 0U);
+    }
+    else if (thisColor >= 0x900000)                                                          // если наш верхний пиксель максимальной яркости, резко снижаем яркость
+      drawPixelXY(x, HEIGHT - 1U, 0x558800);
+    else
+      drawPixelXY(x, HEIGHT - 1U, thisColor - 0x0a1000);                                     // в остальных случаях снижаем яркость на 1 уровень
+    //drawPixelXY(x, HEIGHT - 1U, thisColor - 0x050800);                                     // для длинных хвостов
   }
 }
+// ------------------------------ снегопад 2.5 --------------------------------
+void snowRoutine() {
+  shiftDown();
 
+  for (byte x = 0; x < WIDTH; x++) {
+    // заполняем случайно верхнюю строку
+    // а также не даём двум блокам по вертикали вместе быть
+    if (getPixColorXY(x, HEIGHT - 2) == 0 && (random(0, Scale) == 0))
+      drawPixelXY(x, HEIGHT - 1U, CHSV(0, 0, random(50, 255)));
+    else
+      drawPixelXY(x, HEIGHT - 1, 0x000000);
+  }
+}
 
 
 // ------------- белый свет (светится горизонтальная полоса по центру лампы; масштаб - высота центральной горизонтальной полосы; скорость - регулировка от холодного к тёплому; яркость - общая яркость) -------------
@@ -419,98 +432,6 @@ void ballsRoutine()
   }
 }
 
-// ------------------Узоры-----------------------
-// https://github.com/vvip-68/GyverPanelWiFi/blob/master/firmware/GyverPanelWiFi_v1.02/patterns.ino
-uint8_t patternIdx = -1;
-int8_t lineIdx = 0;
-bool dir = true;
-
-
-CHSV colorMR[5] = {
-  CHSV(0, 0, 0),              // 0 - Black
-  CHSV(HUE_RED, 255, 255),    // 1 - Red
-  CHSV(0, 0, 220),            // 2 - White
-  CHSV(0, 255, 255),              // 3 - плавно меняеться в цикле (фон)
-  CHSV(0, 255, 255),              // 4 - цвет равен 6 но +64
-};
-
-#include "Patterns.h"
-
-void drawPattern(uint8_t ptrn, uint8_t X, uint8_t Y, uint8_t W, uint8_t H, bool dir) {
-
-
-  if (dir)
-    shiftDown();
-  else
-    shiftUp();
-
-
-  uint8_t y = dir ? (HEIGHT - 1) : 0;
-
-  // Если ширина паттерна не кратна ширине матрицы - отрисовывать со сдвигом? чтобы рисунок был максимально по центру
-  int8_t offset_x = -((WIDTH % W) / 2) + 3;
-
-  for (uint8_t x = 0; x < WIDTH + W; x++) {
-    int8_t xx = offset_x + x;
-    if (xx >= 0 && xx < (int8_t)WIDTH) {
-      uint8_t in = (uint8_t)pgm_read_byte(&(patterns[ptrn][lineIdx][x % 10]));
-      CHSV color = colorMR[in];
-      CHSV color2 = color.v != 0 ? CHSV(color.h, color.s, 255) : color;
-      drawPixelXY(xx, y, color2);
-    }
-  }
-  if (dir) {
-    lineIdx = (lineIdx > 0) ? (lineIdx - 1) : (H - 1);
-  } else {
-    lineIdx = (lineIdx < H - 1) ? (lineIdx + 1) : 0;
-  }
-}
-
-
-
-// Отрисовка указанной картинки с размерами WxH в позиции XY
-void drawPicture_XY(uint8_t iconIdx, uint8_t X, uint8_t Y, uint8_t W, uint8_t H) {
-  if (loadingFlag) {
-    loadingFlag = false;
-  }
-
-  for (byte x = 0; x < W; x++) {
-    for (byte y = 0; y < H; y++) {
-      uint8_t in = (uint8_t)pgm_read_byte(&(patterns[iconIdx][y][x]));
-      if (in != 0) {
-        CHSV color = colorMR[in];
-        CHSV color2 = color.v != 0 ? CHSV(color.h, color.s, 255) : color;
-        drawPixelXY(X + x, Y + H - y, color2);
-      }
-    }
-  }
-}
-void patternsRoutine() {
-
-
-  if (loadingFlag) {
-    loadingFlag = false;
-    patternIdx = map(Scale, 1U, MAX_PATTERN + 1, -1, MAX_PATTERN);  // мапим к ползунку масштаба
-    if (patternIdx < 0) {
-      patternIdx = random8(0U, MAX_PATTERN);
-    }
-    //fadeToBlackBy(leds, NUM_LEDS, 25);
-    if (dir)
-      lineIdx = 9;         // Картинка спускается сверху вниз - отрисовка с нижней строки паттерна (паттерн 10x10)
-    else
-      lineIdx = 0;         // Картинка поднимается сверху вниз - отрисовка с верхней строки паттерна
-    // Цвета с индексом 6 и 7 - случайные, определяются в момент настройки эффекта
-    colorMR[3] = CHSV(random8(), 255U, 255U);
-    colorMR[4].hue = colorMR[3].hue + 96; //(beatsin8(1, 0, 255, 0, 127), 255U, 255U);
-  }
-  drawPattern(patternIdx, 0, 0, 10, 10, dir);
-  EVERY_N_MILLIS((1005000U / Speed)) {
-    if (Scale == 1)
-      dir = !dir;
-    loadingFlag = true;
-  }
-}
-
 //---------------Лаволампа------------------------------
 //Основа @SottNick
 //Оптимизация @Stepko
@@ -619,322 +540,4 @@ void fireRoutine() {
   ff_y++;
   if (ff_y & 0x01)
     ff_z++;
-}
-
-// ---------- Эффект "Тикси Ленд"
-byte animation = 0;// (c)  Martin Kleppe @aemkei, https://github.com/owenmcateer/tixy.land-display
-void TLandRoutine() {
-
-  double t = (double)millis() / map(Speed, 1, 255, 1200, 128);
-  hue++;
-  for ( double x = 0; x < WIDTH; x++) {
-    for ( double y = 0; y < HEIGHT; y++) {
-      processFrame(leds, t, x, y);
-    }
-  }
-  if (Scale == 0) {
-    EVERY_N_SECONDS(60) {
-      animation++;
-    }
-  } else {
-    animation = Scale;
-  }
-}
-void processFrame(CRGB *leds, double t, double x, double y) {
-  double i = (y * 16) + x;
-  double frame = constrain(code(t, i, x, y), -1, 1) * 255;
-
-  if (frame >= 0) {
-    leds[getPixelNumber(x, HEIGHT - 1 - y)] = CHSV(hue, frame, frame);
-  }
-  else {
-    leds[getPixelNumber(x, HEIGHT - 1 - y)] = CHSV(hue + 64, abs(frame), abs(frame));
-  }
-}
-
-float code(double t, double i, double x, double y) {
-  //float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-
-  switch (animation) {
-    case 1:
-      //Plasma
-      return sin(x + t) + sin(y + t) + sin(x + y + t) / 3;
-      break;
-    case 2:
-      // Up&Down
-      return sin(cos(x) * y / 8 + t);
-      break;
-
-    case 3:
-      return sin(y * (t / 4.)) * cos(x * (t / 4.));
-      break;
-
-    case 4:
-      return sin(i / 5 + (t));
-      break;
-
-    case 5:
-      return sin(cos(y) * t) * cos(sin(x) * t);
-      break;
-
-
-    /**
-       tixy.land website
-    */
-    case 6:
-      // Emitting rings
-      return sin(t - sqrt(pow((x - 7.5), 2) + pow((y - 6), 2)));
-      break;
-
-    case 7:
-      // Rotation
-      return sin(PI * 2 * atan((y - 8) / (x - 8)) + 5 * t);
-      break;
-
-    case 8:
-      // Vertical fade
-      return sin(y / 8 + t);
-      break;
-
-    case 9:
-      // Smooth noise
-      return cos(t + i + x * y);
-      break;
-
-    case 10:
-      // Waves
-      return sin(x / 2) - sin(x - t * 4) - y + 6;
-      break;
-
-    case 11:
-      // Drop
-      return fmod(8 * t, 13) - hypot(x - 7.5, y - 7.5);
-      break;
-
-
-
-    case 12:
-      // Ripples @thespite
-      return sin(t - sqrt(x * x + y * y));
-      break;
-
-    case 13:
-      // Bloop bloop bloop @v21
-      return  (x - 8) * (y - 8) - sin(t / 2) * 64;;
-      break;
-
-
-    /**
-       Reddit
-    */
-    case 14:
-      // lurkerurke https://www.reddit.com/r/programming/comments/jpqbux/minimal_16x16_dots_coding_environment/gbgcwsn/
-      return sin((x - 7.5) * (y - 7.5) / 5 * t + t);
-      break;
-
-    case 15:
-      // SN0WFAKER https://www.reddit.com/r/programming/comments/jpqbux/minimal_16x16_dots_coding_environment/gbgk7c0/
-      return sin(atan((y - 7.5) / (x - 7.5)) + t);
-      break;
-
-    case 16:
-      // LeadingNegotiation9 https://www.reddit.com/r/programming/comments/jpqbux/minimal_16x16_dots_coding_environment/gbjcoho/
-      return pow(cos(((int)y ^ (int)x) + t), cos((x > y) + t));
-      break;
-
-    case 17:
-      // detunized https://www.reddit.com/r/programming/comments/jpqbux/minimal_16x16_dots_coding_environment/gbgk30l/
-      return sin(y / 8 + t * 0.5) + x / 16 - 0.5;
-      break;
-
-    case 18:
-      // Andres_A https://www.reddit.com/r/programming/comments/jpqbux/minimal_16x16_dots_coding_environment/gbgzdnj/
-      return 1 - hypot(sin(t) * 9 - x, cos(t) * 9 - y) / 9;
-      break;
-
-
-    /**
-       @akella
-       https://twitter.com/akella/status/1323549082552619008
-    */
-    case 19:
-      return sin(6 * atan2(y - 8, x) + t);
-      break;
-
-
-    /**
-       Paul Malin
-       https://twitter.com/P_Malin/
-    */
-    case 20:
-      // Parallax Scrolling Checkerboard https://twitter.com/P_Malin/status/1323609539648905218
-      return ((int)((x - 8) / y + t * 2) & 1 ^ (int)(1 / y * 8) & 1) * y / 5;
-      break;
-
-    case 21:
-      // Matrix Rain https://twitter.com/P_Malin/status/1323583013880553472
-      return 1 - fmod((x * x - y + t * (fmod(1 + x * x, 5.0)) * 3.0), 16.0) / 16.0;
-      break;
-
-    case 22:
-      // Burst https://twitter.com/P_Malin/status/1323605999274594304
-      return -10. / ((x - 8.) * (x - 8.) + (y - 8.) * (y - 8.) - fmod(t * 0.3, 0.7) * 200.);
-      break;
-
-    case 23:
-      // Rays
-      return sin(atan2(x, y) * 5 + t * 2);
-      break;
-
-    case 24:
-      // Starfield https://twitter.com/P_Malin/status/1323702220320313346
-      return !((int)(x + (t / 2.) * 50. / (fmod(y * y, 5.9) + 1.)) & 15) / (fmod(y * y, 5.9) + 1.);
-      break;
-
-    default:
-      animation = 1;
-      return sin(x + t) + sin(y + t) + sin(x + y + t) / 3;
-      break;
-  }
-}
-//-------------Дождь---------------------------
-bool Lightning(uint8_t chanse)
-{
-  //uint8_t lightning[WIDTH][HEIGHT];
-  // ESP32 does not like static arrays  https://github.com/espressif/arduino-esp32/issues/2567
-  if (random16() < chanse)
-  {
-    uint8_t *lightning = (uint8_t *)malloc(WIDTH * HEIGHT);                                                           // Odds of a lightning bolt
-    lightning[scale8(random8(), WIDTH - 1) + (HEIGHT - 1) * WIDTH] = 255; // Random starting location
-    for (uint8_t ly = HEIGHT - 1; ly > 1; ly--)
-    {
-      for (uint8_t lx = 1; lx < WIDTH - 1; lx++)
-      {
-        if (lightning[lx + ly * WIDTH] == 255)
-        {
-          lightning[lx + ly * WIDTH] = 0;
-          uint8_t dir = random8(4);
-          switch (dir)
-          {
-            case 0:
-              setLed(getPixelNumber(lx + 1, ly - 1), CHSV(30, 90, 255));
-              lightning[(lx + 1) + (ly - 1) * WIDTH] = 255; // move down and right
-              break;
-            case 1:
-              setLed(getPixelNumber(lx, ly - 1), CHSV(30, 90, 255)); // я без понятия, почему у верхней молнии один оттенок, а у остальных - другой
-              lightning[lx + (ly - 1) * WIDTH] = 255;                                 // move down
-              break;
-            case 2:
-              setLed(getPixelNumber(lx - 1, ly - 1), CHSV(30, 90, 255));
-              lightning[(lx - 1) + (ly - 1) * WIDTH] = 255; // move down and left
-              break;
-            case 3:
-              setLed(getPixelNumber(lx - 1, ly - 1), CHSV(30, 90, 255));
-              lightning[(lx - 1) + (ly - 1) * WIDTH] = 255; // fork down and left
-              setLed(getPixelNumber(lx - 1, ly - 1), CHSV(30, 90, 255));
-              lightning[(lx + 1) + (ly - 1) * WIDTH] = 255; // fork down and right
-              break;
-          }
-        }
-      }
-    }
-
-    //free(lightning);
-    return true;
-  }
-  return false;
-}
-
-// Функция рисует тучу в верхней части матрицы
-void Clouds(bool flash)
-{
-  const CRGBPalette16 rainClouds_p(0x000000, 0x333C3C, 0x2D3333, 0xB5B5B5);
-  //uint32_t random = millis();
-  uint8_t dataSmoothing = 50; //196
-  uint16_t noiseX = beatsin16(1, 10, 4000, 0, 150);
-  uint16_t noiseY = beatsin16(1, 1000, 10000, 0, 50);
-  uint16_t noiseZ = beatsin16(1, 10, 4000, 0, 100);
-  uint16_t noiseScale = 50; // A value of 1 will be so zoomed in, you'll mostly see solid colors. A value of 4011 will be very zoomed out and shimmery
-  const uint8_t cloudHeight = (HEIGHT * 0.2) + 1;
-
-  // This is the array that we keep our computed noise values in
-  //static uint8_t noise[WIDTH][cloudHeight];
-  static uint8_t *noise = (uint8_t *)malloc(WIDTH * cloudHeight);
-  for (uint8_t x = 0; x < WIDTH; x++)
-  {
-    int xoffset = noiseScale * x;
-
-    for (int z = 0; z < cloudHeight; z++)
-    {
-      int yoffset = noiseScale * z;
-      uint8_t noiseData = qsub8(inoise8(noiseX + xoffset, noiseY + yoffset, noiseZ), 16);
-      noiseData = qadd8(noiseData, scale8(noiseData, 39));
-      noise[x * cloudHeight + z] = scale8(noise[x * cloudHeight + z], dataSmoothing) + scale8(noiseData, 256 - dataSmoothing);
-      if (flash)
-        drawPixelXY(x, HEIGHT - z - 1, CHSV(random8(20, 30), 250, random8(64, 100)));
-      nblend(getUnsafeLedsArray()[getPixelNumber(x, HEIGHT - z - 1)], ColorFromPalette(rainClouds_p, noise[x * cloudHeight + z], noise[x * cloudHeight + z]), (500 / cloudHeight));
-    }
-    noiseZ++;
-  }
-  if (flash) {
-    for (uint16_t i = 0; i < WIDTH; i++)
-    {
-      for (byte z = 0; z < 10; z++)
-        drawPixelXYF(i, randomf((float)HEIGHT - 4., (float)HEIGHT - 1.), CHSV(0, 250, random8(120, 200)));
-    }
-    blurScreen(100);
-  }
-}
-
-void RainRoutine() {
-  if (loadingFlag) {
-    randomSeed(millis());
-    for (uint8_t i = 0U; i < LIGHTERS_AM; i++)
-    {
-      lightersPos[0U][i] = random8(0, WIDTH * 10);
-      lightersPos[1U][i] = random8((HEIGHT - 4) * 10, (HEIGHT + 4) * 10);
-      lightersSpeed[0U][i] = 1;
-      lightersSpeed[1U][i] = random8(5, 10);
-      lightersColor[i] = 130;
-      lightersBright[i] = random8(200, 255);
-      loadingFlag = false;
-    }
-  }
-  FastLED.clear();
-
-  for (uint8_t i = 0U; i < map(Scale, 1, 255, 1, LIGHTERS_AM); i++)
-  {
-    lightersPos[1U][i] -= lightersSpeed[1U][i];
-    lightersSpeed[0U][i] = beatsin88(Speed, 0, 20) - 10;
-    lightersPos[0U][i] -= lightersSpeed[0U][i];
-    drawPixelXY(lightersPos[0U][i] / 10, lightersPos[1U][i] / 10, CHSV(lightersColor[i], 100, lightersBright[i]));
-
-    if (lightersPos[1U][i] < 0) {
-      lightersPos[0U][i] = random(0, WIDTH * 10);
-      lightersPos[1U][i] = HEIGHT * 10;
-      lightersSpeed[1U][i] = random(5, 10);
-      lightersBright[i] = random8(200, 255);
-    } //(float)random(15, 25) / 10.0f;
-    if (lightersPos[0][i] < 0) {
-      lightersPos[0][i] = WIDTH * 10;
-    }
-    if (lightersPos[0][i] > WIDTH * 10) {
-      lightersPos[0][i] = 0;
-    }
-
-  }
-  switch (map(palette, 1, 255, 1, 4)) {
-    case 1:
-      break;
-    case 2:
-      Clouds(false);
-      Lightning(200);
-      break;
-    case 3:
-      Clouds((Lightning(200)));
-      break;
-    case 4:
-      Lightning(200);
-      break;
-  }
 }

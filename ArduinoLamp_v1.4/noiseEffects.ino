@@ -4,8 +4,8 @@ static uint16_t x;
 static uint16_t y;
 static uint16_t z;
 
-uint16_t speed = 20;                                        // speed is set dynamically once we've started up
-uint16_t scale = 30;                                        // scale is set dynamically once we've started up
+uint8_t speed = 20;                                        // speed is set dynamically once we've started up
+uint8_t scale = 30;                                        // scale is set dynamically once we've started up
 
 // This is the array that we keep our computed noise values in
 #define MAX_DIMENSION (max(WIDTH, HEIGHT))
@@ -15,10 +15,7 @@ uint8_t noise[WIDTH][WIDTH];
 uint8_t noise[HEIGHT][HEIGHT];
 #endif
 
-
 CRGBPalette16 currentPalette(PartyColors_p);
-uint8_t colorLoop = 1;
-uint8_t ihue = 0;
 
 //------------Шумы 3Д------------------
 void Noise3D()
@@ -29,9 +26,6 @@ void Noise3D()
     scale = map(Scale,1,255,1,100);
     speed = map(Scale,1,255,1,155);
     currentPalette = *curPalette;
-    if (Speed % 2)
-      colorLoop = 0;
-    else colorLoop = 1;
   }
   if (palette<=255)
   fillNoiseLED();
@@ -45,7 +39,7 @@ void Noise3D()
       drawPixelXY(i, j, CHSV(noise[j][i], 255, noise[i][j]));
     }
   }
-  ihue += 1;
+  hue += 1;
 }}
 
 // ************* СЛУЖЕБНЫЕ *************
@@ -89,9 +83,9 @@ void fillNoiseLED()
       uint8_t index = noise[j][i];
       uint8_t bri =   noise[i][j];
       // if this palette is a 'loop', add a slowly-changing base value
-      if ( colorLoop)
+      if (Speed % 2)
       {
-        index += ihue;
+        index += hue;
       }
       // brighten up, as the color palette itself often contains the
       // light/dark dynamic range desired
@@ -107,7 +101,7 @@ void fillNoiseLED()
       drawPixelXY(i, j, color);
     }
   }
-  ihue += 1;
+  hue += 1;
 }
 
 void fillnoise8()
