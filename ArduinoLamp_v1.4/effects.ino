@@ -12,6 +12,9 @@ int16_t coord[BALLS_AMOUNT][2U];
 int8_t vector[BALLS_AMOUNT][2U];
 CRGB ballColors[BALLS_AMOUNT];
 //===================Коды эффектов==============================================
+uint8_t step; // какой-нибудь счётчик кадров или постедовательностей операций
+uint8_t shiftValue[HEIGHT];
+uint8_t shiftHue[HEIGHT];
 uint8_t deltaHue, deltaHue2; // ещё пара таких же, когда нужно много
 uint8_t deltaValue; // просто повторно используемая переменная
 byte hue, hue2;
@@ -58,6 +61,13 @@ const TProgmemRGBPalette16 *curPalette = palette_arr[0];
 void setCurrentPalette(uint8_t palIdx) {
   curPalette = palette_arr[palIdx];
 }
+
+#define LIGHTERS_AM ((WIDTH+HEIGHT)/4)
+int16_t lightersPos[2][LIGHTERS_AM];
+int8_t lightersSpeed[2][LIGHTERS_AM];
+byte lightersColor[LIGHTERS_AM];
+byte lightersBright[LIGHTERS_AM];
+
 // --------------------------------- конфетти ------------------------------------
 void sparklesRoutine()
 {
@@ -283,129 +293,128 @@ void stormRoutine() {
   }
 }
 
-//-------------------------Блуждающий кубик-----------------------
-int16_t coordB[2U];
-int8_t vectorB[2U];
-CRGB ballColor;
+// ------------- блуждающий кубик -------------
+#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
+//int8_t deltaValue; //ballSize;
 
 void ballRoutine()
 {
   if (loadingFlag)
   {
     loadingFlag = false;
-
-    if (modes[currentMode].Scale <= 85)
-      deltaValue = map(modes[currentMode].Scale, 1, 85, 1U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 1));
-    else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
-      deltaValue = map(modes[currentMode].Scale, 170, 86, 1U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 1));
-    else
-      deltaValue = map(modes[currentMode].Scale, 171, 255, 1U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 1));
+    //FastLED.clear();
 
     for (uint8_t i = 0U; i < 2U; i++)
     {
-      coordB[i] = WIDTH / 2 * 10;
-      vectorB[i] = random(8, 20);
+      lightersPos[i][0] = WIDTH / 2 * 10;
+      lightersSpeed[i][0] = random(4, 10);
     }
-    ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
+    deltaValue = map(modes[currentMode].Scale * 2.55, 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
+    lightersColor[0] = random(0, 9) * 28;
+    //    _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
   }
 
+  //  if (!(modes[currentMode].Scale & 0x01))
+  //  {
+  //    hue += (modes[currentMode].Scale - 1U) % 11U * 8U + 1U;
+
+  //    ballColor = CHSV(hue, 255U, 255U);
+  //  }
 
   if ((modes[currentMode].Scale & 0x01))
     for (uint8_t i = 0U; i < deltaValue; i++)
       for (uint8_t j = 0U; j < deltaValue; j++)
-        leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = _pulse_color;
+        leds[XY(lightersPos[0][0] / 10 + i, lightersPos[1][0] / 10 + j)] = _pulse_color;
 
   for (uint8_t i = 0U; i < 2U; i++)
   {
-    coordB[i] += vectorB[i];
-    if (coordB[i] < 0)
+    lightersPos[i][0] += lightersSpeed[i][0];
+    if (lightersPos[i][0] < 0)
     {
-      coordB[i] = 0;
-      vectorB[i] = -vectorB[i];
-      ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-
+      lightersPos[i][0] = 0;
+      lightersSpeed[i][0] = -lightersSpeed[i][0];
+      if (RANDOM_COLOR) lightersColor[0] = random(0, 9) * 28; // if (RANDOM_COLOR && (modes[currentMode].Scale & 0x01))
+      //vectorB[i] += random(0, 6) - 3;
     }
   }
-  if (coordB[0U] > (int16_t)((WIDTH - deltaValue) * 10))
+  if (lightersPos[0][0] > (int16_t)((WIDTH - deltaValue) * 10))
   {
-    coordB[0U] = (WIDTH - deltaValue) * 10;
-    vectorB[0U] = -vectorB[0U];
-    ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-
+    lightersPos[0][0] = (WIDTH - deltaValue) * 10;
+    lightersSpeed[0][0] = -lightersSpeed[0][0];
+    if (RANDOM_COLOR) lightersColor[0] = random(0, 9) * 28;
+    //vectorB[0] += random(0, 6) - 3;
   }
-  if (coordB[1U] > (int16_t)((HEIGHT - deltaValue) * 10))
+  if (lightersPos[1][0] > (int16_t)((HEIGHT - deltaValue) * 10))
   {
-    coordB[1U] = (HEIGHT - deltaValue) * 10;
-    vectorB[1U] = -vectorB[1U];
-    ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-
+    lightersPos[1][0] = (HEIGHT - deltaValue) * 10;
+    lightersSpeed[1][0] = -lightersSpeed[1][0];
+    if (RANDOM_COLOR) lightersColor[0] = random(0, 9) * 28;
+    //vectorB[1] += random(0, 6) - 3;
   }
 
-  if (modes[currentMode].Scale <= 85)  // при масштабе до 85 выводим кубик без шлейфа
-    memset8( leds, 0, NUM_LEDS * 3);
-  else if (modes[currentMode].Scale > 85 and modes[currentMode].Scale <= 170)
-    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) / 255) + 30); // выводим кубик со шлейфом, длинна которого зависит от скорости.
-  else
-    fadeToBlackBy(leds, NUM_LEDS, 255 - (10 * (modes[currentMode].Speed) / 255) + 15); // выводим кубик с длинным шлейфом, длинна которого зависит от скорости.
-
+  //  if (modes[currentMode].Scale & 0x01)
+  //    dimAll(135U);
+  //    dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);
+  //  else
+  FastLED.clear();
 
   for (uint8_t i = 0U; i < deltaValue; i++)
     for (uint8_t j = 0U; j < deltaValue; j++)
-      leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = ballColor;
+      drawPixelXYF((float)lightersPos[0][0] / 10 + i, (float)lightersPos[1][0] / 10 + j, CHSV(lightersColor[0], 255, 255));
 }
-
-//-------------------Светлячки со шлейфом----------------------------
+//-----------------Светлячки со шлейфом----------------------------------
 void ballsRoutine()
 {
   if (loadingFlag)
   {
     loadingFlag = false;
 
-    for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
+    for (uint8_t j = 0U; j < (WIDTH + HEIGHT) / 4; j++)
     {
       int8_t sign;
       // забиваем случайными данными
-      coord[j][0U] = WIDTH / 2 * 10;
+      lightersPos[0][j] = WIDTH / 2 * 10;
       random(0, 2) ? sign = 1 : sign = -1;
-      vector[j][0U] = random(4, 15) * sign;
-      coord[j][1U] = HEIGHT / 2 * 10;
+      lightersSpeed[0][j] = random(4, 15) * sign;
+      lightersPos[1][j] = HEIGHT / 2 * 10;
       random(0, 2) ? sign = 1 : sign = -1;
-      vector[j][1U] = random(4, 15) * sign;
+      lightersSpeed[1][j] = random(4, 15) * sign;
       //ballColors[j] = CHSV(random(0, 9) * 28, 255U, 255U);
       // цвет зависит от масштаба
-      ballColors[j] = CHSV((modes[currentMode].Scale * (j + 1)) % 256U, 255U, 255U);
+      lightersColor[j] = (modes[currentMode].Scale * (j + 1)) % 256U;
     }
   }
 
-  fader(TRACK_STEP);
+  dimAll(256U - TRACK_STEP);
 
   // движение шариков
-  for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
+  for (uint8_t j = 0U; j < map(modes[currentMode].Scale, 1, 255, 1, (WIDTH + HEIGHT) / 4); j++)
   {
     // движение шариков
     for (uint8_t i = 0U; i < 2U; i++)
     {
-      coord[j][i] += vector[j][i];
-      if (coord[j][i] < 0)
+      lightersPos[i][j] += lightersSpeed[i][j];
+      if (lightersPos[i][j] < 0)
       {
-        coord[j][i] = 0;
-        vector[j][i] = -vector[j][i];
+        lightersPos[i][j] = 0;
+        lightersSpeed[i][j] = -lightersSpeed[i][j];
       }
     }
 
-    if (coord[j][0U] > (int16_t)((WIDTH - 1) * 10))
+    if (lightersPos[0][j] > (int16_t)((WIDTH - 1) * 10))
     {
-      coord[j][0U] = (WIDTH - 1) * 10;
-      vector[j][0U] = -vector[j][0U];
+      lightersPos[0][j] = (WIDTH - 1) * 10;
+      lightersSpeed[0][j] = -lightersSpeed[0][j];
     }
-    if (coord[j][1U] > (int16_t)((HEIGHT - 1) * 10))
+    if (lightersPos[1][j] > (int16_t)((HEIGHT - 1) * 10))
     {
-      coord[j][1U] = (HEIGHT - 1) * 10;
-      vector[j][1U] = -vector[j][1U];
+      lightersPos[1][j] = (HEIGHT - 1) * 10;
+      lightersSpeed[1][j] = -lightersSpeed[1][j];
     }
-    leds[XY(coord[j][0U] / 10, coord[j][1U] / 10)] =  ballColors[j];
+    drawPixelXYF((float)lightersPos[0][j] / 10, (float)lightersPos[1][j] / 10, CHSV(lightersColor[j], 255, 255));
   }
 }
+
 
 // -------------------------------------- огонь ---------------------------------------------
 unsigned char matrixValue[8][16];
@@ -529,37 +538,60 @@ void drawFrame(int pcnt) {
     leds[getPixelNumber(newX, 0)] = color;
   }
 }
-// ---------------------Огненная Лампа-------------------------------
-// Yaroslaw Turbin, 22.06.2020
-// https://vk.com/ldirko
-// https://pastebin.com/eKqe4zzA
-// доработки - kostyamat
+// ============= Огонь 2020 ===============
+// (c) SottNick
+//сильно по мотивам https://pastebin.com/RG0QGzfK
+//Perlin noise fire procedure by Yaroslaw Turbin
+//https://www.reddit.com/r/FastLED/comments/hgu16i/my_fire_effect_implementation_based_on_perlin/
+uint16_t ff_y, ff_z;// используем для сдвига нойза переменные из общих
 void FireRoutine() {
   if (loadingFlag) {
     setCurrentPalette(palette + 10);
     loadingFlag = false;
-  }
+    deltaValue = modes[currentMode].Scale * 0.0899;// /100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F));
+    deltaValue = (((modes[currentMode].Scale - 1U) % 11U + 1U) << 4U) - 8U; // ширина языков пламени (масштаб шума Перлина)
+    deltaHue = map(deltaValue, 8U, 168U, 8U, 84U); // высота языков пламени должна уменьшаться не так быстро, как ширина
+    step = map(255U - deltaValue, 87U, 247U, 4U, 32U); // вероятность смещения искорки по оси ИКС
+    for (uint8_t j = 0; j < HEIGHT; j++) {
+      shiftHue[j] = (HEIGHT - 1 - j) * 255 / (HEIGHT - 1); // init colorfade table
+    }
 
-  uint8_t speedy = map(modes[currentMode].Speed, 1, 255, 255, 0);
-  uint8_t _scale = modes[currentMode].Scale + 30;
-
-  uint32_t a = millis();
-  for (byte i = 0U; i < WIDTH; i++) {
-    for (byte j = 0U; j < HEIGHT; j++) {
-      if (palette <= 9)
-        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(*curPalette, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
-      else
-        drawPixelXY((WIDTH - 1) - i, (HEIGHT - 1) - j, ColorFromPalette(HeatColors_p, qsub8(inoise8(i * _scale, j * _scale + a, a / speedy), abs8(j - (HEIGHT - 1)) * 255 / (HEIGHT - 1)), 255));
+    for (uint8_t i = 0; i < (WIDTH / 8U); i++) {
+      lightersSpeed[1][i] = random8(HEIGHT);
+      lightersSpeed[0][i] = random8(WIDTH);
     }
   }
+  for (uint8_t i = 0; i < WIDTH; i++) {
+    for (uint8_t j = 0; j < HEIGHT; j++) {
+      leds[XY(i, HEIGHT - 1U - j)] = ColorFromPalette(*curPalette, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
+    }
+  }
+
+  //вставляем искорки из отдельного массива
+  for (uint8_t i = 0; i < (WIDTH / 8U); i++) {
+    if (lightersSpeed[1][i] > 3U) {
+      leds[XY(lightersSpeed[0][i], lightersSpeed[1][i])] = leds[XY(lightersSpeed[0][i], 3U)];
+      leds[XY(lightersSpeed[0][i], lightersSpeed[1][i])].fadeToBlackBy( lightersSpeed[1][i] * 2U );
+    }
+    lightersSpeed[1][i]++;
+    if (lightersSpeed[1][i] >= HEIGHT) {
+      lightersSpeed[1][i] = random8(4U);
+      lightersSpeed[0][i] = random8(WIDTH);
+    }
+    if (!random8(step))
+      lightersSpeed[0][i] = (WIDTH + lightersSpeed[0][i] + 1U - random8(3U)) % WIDTH;
+  }
+  ff_y++;
+  if (ff_y & 0x01)
+    ff_z++;
 }
 
 //---------------Лаволампа------------------------------
 //Основа @SottNick
 //Оптимизация @Stepko
-float ball[(WIDTH / 2) -  ((WIDTH - 1) & 0x01)][4];
+float ball[(WIDTH / 2) -  ((WIDTH - 1) & 0x01)][3];
 void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать не получается, будем попиксельно вырисовывать 2 варианта пузырей
-  if (ball[l][3] == 2)
+  if (lightersSpeed[0][l] == 2)
   {
     for (int8_t x = -2; x < 3; x++)
       for (int8_t y = -2; y < 3; y++)
@@ -578,8 +610,8 @@ void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать 
 void LavaLampRoutine() {
   if (loadingFlag)
   { for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
-      ball[i][3] = random(1, 3);
-      ball[i][2] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
+      lightersSpeed[0][i] = random(1, 3);
+      ball[i][2] = (float)random8(5, 11) / (modes[currentMode].Speed) / 4.0;
       ball[i][0] = 0;
       ball[i][1] = i * 2U + random8(2);
       if ( ball[i][2] == 0)
@@ -592,15 +624,15 @@ void LavaLampRoutine() {
   blurScreen(20);
   for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
     // Draw 'ball'
-    if (palette <= 9)
+    if (palette <= 255)
       drawBlob(i, ColorFromPalette(*curPalette, ball[i][0] * 16));
     else
       drawBlob(i, CHSV(modes[currentMode].Scale, 255, 255));
 
-    if (ball[i][0] + ball[i][3] >= HEIGHT - 1)
-      ball[i][0] += (ball[i][2] * ((HEIGHT - 1 - ball[i][0]) / ball[i][3] + 0.005));
-    else if (ball[i][0] - ball[i][3] <= 0)
-      ball[i][0] += (ball[i][2] * (ball[i][0] / ball[i][3] + 0.005));
+    if (ball[i][0] + lightersSpeed[0][i] >= HEIGHT - 1)
+      ball[i][0] += (ball[i][2] * ((HEIGHT - 1 - ball[i][0]) / lightersSpeed[0][i] + 0.005));
+    else if (ball[i][0] - lightersSpeed[0][i] <= 0)
+      ball[i][0] += (ball[i][2] * (ball[i][0] / lightersSpeed[0][i] + 0.005));
     else
       ball[i][0] += ball[i][2];
     if (ball[i][0] < 0.01) {                  // почему-то при нуле появляется мерцание (один кадр, еле заметно)
@@ -613,27 +645,4 @@ void LavaLampRoutine() {
       ball[i][0] = HEIGHT - 1.01;
     }
   }
-}
-// ============= ЭФФЕКТ ПРИЗМАТА ===============
-// Prismata Loading Animation
-// https://github.com/pixelmatix/aurora/blob/master/PatternPendulumWave.h
-// Адаптация от (c) SottNick
-
-void PrismataRoutine() {
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    setCurrentPalette(palette);
-
-  } 
-  
-
-    hue += 1;
-
-  fadeToBlackBy(leds, NUM_LEDS, 256U - modes[currentMode].Scale); // делаем шлейф
-
-  for (float x = 0.0f; x <= (float)WIDTH - 1; x += 0.25f) {
-      float y = (float)beatsin8((uint8_t)x + 1 * (float)modes[currentMode].Speed / 2.0f, 0, (HEIGHT-1)* 4) / 4.0f;
-  drawPixelXYF(x, y, ColorFromPalette(*curPalette, hue));
-    }
 }

@@ -69,9 +69,10 @@ void setup() {
   Serial.println();
 #endif
   SetUP();
-  //Serial.begin(9600);
-  //Serial.println();
-
+  #ifdef DEBUG
+  Serial.begin(9600);
+  Serial.println();
+  #endif
   if (EEPROM.read(0) == 102) {                    // если было сохранение настроек, то восстанавливаем их (с)НР
     currentMode = EEPROM.read(1);
     for (byte x = 0; x < MODE_AMOUNT; x++) {
