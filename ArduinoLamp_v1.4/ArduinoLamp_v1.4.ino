@@ -48,13 +48,9 @@ void changePower() {    // плавное включение/выключени�
 }
 #include <EEPROM.h>
 #if(CONTROL_TYPE == 0)
-#include <GyverButtonOld.h>
 #include "button.h"
 #endif
 #if(CONTROL_TYPE == 1)
-#include <IRLremote.h>
-CHashIR IRLremote;
-uint32_t IRdata;
 #include "IrControl.h"
 #endif
 // ----------------- ПЕРЕМЕННЫЕ ------------------
@@ -72,12 +68,7 @@ void setup() {
   Serial.begin(9600);
   Serial.println();
 #endif
-#if(CONTROL_TYPE == 0)
-  touch.setStepTimeout(100);
-  touch.setClickTimeout(500);
-#elif(CONTROL_TYPE == 1)
-  IRLremote.begin(CONTROL_PIN);
-#endif
+  SetUP();
   //Serial.begin(9600);
   //Serial.println();
 

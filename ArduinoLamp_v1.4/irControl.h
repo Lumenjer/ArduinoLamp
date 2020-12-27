@@ -15,6 +15,10 @@
 #define IR_1 0x1E4E56B5               // код пульта 
 
 //--------------------------------------------------------------------------------------
+#include <IRLremote.h>
+CHashIR IRLremote;
+uint32_t IRdata;
+
 bool inDirection;void debugPrint() {
 #ifdef DEBUG
   Serial.print(F(" brightness:"));
@@ -127,3 +131,6 @@ void controlTick() {
 
 FastLED.setBrightness(modes[currentMode].Brightness);
 }
+void SetUP(){
+IRLremote.begin(CONTROL_PIN);
+  }

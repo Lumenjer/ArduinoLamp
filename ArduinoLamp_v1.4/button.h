@@ -1,5 +1,7 @@
 #define BUTTON_TYPE 1  //0-Сенсорная, 1-Тактовая
 //------------------------------------------------------------------------------
+#include <GyverButtonOld.h>
+
 #if (BUTTON_TYPE == 0)
 GButton touch(CONTROL_PIN, LOW_PULL, NORM_OPEN);
 #else
@@ -104,3 +106,8 @@ void controlTick() {
     FastLED.setBrightness(modes[currentMode].Brightness);
   }
 }
+
+void SetUP(){
+  touch.setStepTimeout(100);
+  touch.setClickTimeout(500);
+  }
