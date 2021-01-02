@@ -49,18 +49,19 @@ void changePower() {    // плавное включение/выключени�
 #include <EEPROM.h>
 #if(CONTROL_TYPE == 0)
 #include "button.h"
-#endif
-#if(CONTROL_TYPE == 1)
+#elif(CONTROL_TYPE == 1)
 #include "IrControl.h"
-#endif
-#if(CONTROL_TYPE == 2)
+#elif(CONTROL_TYPE == 2)
 #include "2_BTns.h"
-#endif
-#if(CONTROL_TYPE == 3)
+#elif(CONTROL_TYPE == 3)
 #include "3_BTns.h"
-#endif
-#if(CONTROL_TYPE == 4)
+#elif(CONTROL_TYPE == 4)
 #include "Bluetooth.h"
+#elif(CONTROL_TYPE == 5)
+#include "3_BTns.h"
+#else
+void controlTick(){return;}
+void SetUP(){return;}
 #endif
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);

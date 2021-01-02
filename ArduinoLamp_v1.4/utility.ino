@@ -116,7 +116,31 @@ uint16_t getPixelNumber(uint8_t x, uint8_t y)
 {
   return XY(x, y);
 }
-void drawPixelXYF(float x, float y, const CRGB &color)
+void drawPixelXYF_Y(uint16_t x, float y, const CRGB &color)
+  {
+  //if (x<0 || y<0 || x>((float)WIDTH) || y>((float)HEIGHT)) return;
+
+  // extract the fractional parts and derive their inverses
+  uint8_t yy = (y - (int)y) * 255, iy = 255 - yy;
+  // calculate the intensities for each affected pixel
+  uint8_t wu[2] = {iy, yy};
+  // multiply the intensities by the colour, and saturating-add them to the pixels
+  for (int8_t i = 1; i >= 0; i--) {
+      int16_t yn = y + (i & 1);
+      CRGB clr = leds[XY(x, yn)];
+      if(yn>0 && yn<(int)HEIGHT-1){
+        clr.r = qadd8(clr.r, (color.r * wu[i]) >> 8);
+        clr.g = qadd8(clr.g, (color.g * wu[i]) >> 8);
+        clr.b = qadd8(clr.b, (color.b * wu[i]) >> 8);
+      } else if(yn==0 || yn==(int)HEIGHT-1) {
+        clr.r = qadd8(clr.r, (color.r * 85) >> 8);
+        clr.g = qadd8(clr.g, (color.g * 85) >> 8);
+        clr.b = qadd8(clr.b, (color.b * 85) >> 8);
+      }
+      leds[XY(x, yn)]= clr;
+  }
+  }
+/*void drawPixelXYF(float x, float y, const CRGB &color)
 {
   if (x < 0 || y < 0 || x > ((float)WIDTH - 1) || y > ((float)HEIGHT - 1)) return;
 
@@ -143,4 +167,4 @@ void drawPixelXYF(float x, float y, const CRGB &color)
     drawPixelXY(xn, yn, clr);
   }
 #undef WU_WEIGHT
-}
+}*/

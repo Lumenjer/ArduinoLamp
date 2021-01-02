@@ -116,10 +116,9 @@ void rainbowHorVertRoutine(bool isVertical)
 { hue + 4;
   for (uint8_t i = 0U; i < (isVertical ? WIDTH : HEIGHT); i++)
   {
-    CHSV thisColor = CHSV((uint8_t)(hue + i * modes[currentMode].Scale % 170), 255, 255);
     for (uint8_t j = 0U; j < (isVertical ? HEIGHT : WIDTH); j++)
     {
-      drawPixelXY((isVertical ? i : j), (isVertical ? j : i), thisColor);
+      drawPixelXY((isVertical ? i : j), (isVertical ? j : i), CHSV((uint8_t)(hue + i * modes[currentMode].Scale % 170), 255, 255));
     }
   }
 }
@@ -138,8 +137,7 @@ void RainbowRoutine()
       for (uint8_t j = 0U; j < HEIGHT; j++)
       {
         float twirlFactor = fmap((float)modes[currentMode].Scale, 85, 170, 8.3, 24);      // на сколько оборотов будет закручена матрица, [0..3]
-        CRGB thisColor = CHSV((uint8_t)(hue + ((float)WIDTH / HEIGHT * i + j * twirlFactor) * ((float)255 / maxDim)), 255, 255);
-        drawPixelXY(i, j, thisColor);
+        drawPixelXY(i, j, CHSV((uint8_t)(hue + ((float)WIDTH / HEIGHT * i + j * twirlFactor) * ((float)255 / maxDim)), 255, 255));
       }
     }
   }
@@ -159,9 +157,39 @@ void colorRoutine() {
     leds[i] = CHSV(modes[currentMode].Scale * 2.5, modes[currentMode].Speed * 2.5, 255);
   }
 }
-
+// ============= ЭФФЕКТ ДОЖДЬ ===============
+// от @Shaitan
+void RainRoutine()
+{
+  for (uint8_t x = 0U; x < WIDTH; x++)
+  {
+    // заполняем случайно верхнюю строку
+    CRGB thisColor = getPixColorXY(x, HEIGHT - 1U);
+    if ((uint32_t)thisColor == 0U)
+    {
+     if (random8(0, 50) == 0U)
+      {
+      if (modes[currentMode].Scale==1) drawPixelXY(x, HEIGHT - 1U, CHSV(random(0, 9) * 28, 255U, 255U)); // Радужный дождь
+      else
+      if (modes[currentMode].Scale>=100) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
+      else
+      drawPixelXY(x, HEIGHT - 1U, CHSV(modes[currentMode].Scale*2.4+random(0, 16),255,255)); // Цветной дождь
+      }
+  }
+    else
+       leds[XY(x,HEIGHT - 1U)]-=CHSV(0,0,random(96, 128));
+  }
+  // сдвигаем всё вниз
+  for (uint8_t x = 0U; x < WIDTH; x++)
+  {
+    for (uint8_t y = 0U; y < HEIGHT - 1U; y++)
+    {
+      drawPixelXY(x, y, getPixColorXY(x, y + 1U));
+    }
+  }
+}
 // ------------------------------ снегопад 2.5 --------------------------------
-void snowRoutine() {
+/*void snowRoutine() {
   shiftDown();
 
   for (byte x = 0; x < WIDTH; x++) {
@@ -172,7 +200,7 @@ void snowRoutine() {
     else
       drawPixelXY(x, HEIGHT - 1, 0x000000);
   }
-}
+}*/
 
 // ------------------------------ МАТРИЦА ------------------------------
 void matrixRoutine()
@@ -360,7 +388,7 @@ void ballRoutine()
 
   for (uint8_t i = 0U; i < deltaValue; i++)
     for (uint8_t j = 0U; j < deltaValue; j++)
-      drawPixelXYF((float)lightersPos[0][0] / 10 + i, (float)lightersPos[1][0] / 10 + j, CHSV(lightersColor[0], 255, 255));
+      drawPixelXY(lightersPos[0][0] / 10 + i, lightersPos[1][0] / 10 + j, CHSV(lightersColor[0], 255, 255));
 }
 //-----------------Светлячки со шлейфом----------------------------------
 void ballsRoutine()
@@ -411,7 +439,7 @@ void ballsRoutine()
       lightersPos[1][j] = (HEIGHT - 1) * 10;
       lightersSpeed[1][j] = -lightersSpeed[1][j];
     }
-    drawPixelXYF((float)lightersPos[0][j] / 10, (float)lightersPos[1][j] / 10, CHSV(lightersColor[j], 255, 255));
+    drawPixelXY(lightersPos[0][j] / 10,lightersPos[1][j] / 10, CHSV(lightersColor[j], 255, 255));
   }
 }
 
@@ -596,14 +624,14 @@ void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать 
     for (int8_t x = -2; x < 3; x++)
       for (int8_t y = -2; y < 3; y++)
         if (abs(x) + abs(y) < 4)
-          drawPixelXYF(fmod(ball[l][1] + x + WIDTH, WIDTH), ball[l][0] + y, color);
+          drawPixelXYF_Y(ball[l][1] + x, ball[l][0] + y, color);
   }
   else
   {
     for (int8_t x = -1; x < 3; x++)
       for (int8_t y = -1; y < 3; y++)
         if (!(x == -1 && (y == -1 || y == 2) || x == 2 && (y == -1 || y == 2)))
-          drawPixelXYF(fmod(ball[l][1] + x + WIDTH, WIDTH), ball[l][0] + y, color);
+          drawPixelXYF_Y(ball[l][1] + x, ball[l][0] + y, color);
   }
 }
 
