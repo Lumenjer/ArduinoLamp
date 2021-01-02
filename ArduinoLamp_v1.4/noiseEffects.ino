@@ -17,7 +17,7 @@ uint8_t noise[HEIGHT][HEIGHT];
 
 CRGBPalette16 currentPalette(PartyColors_p);
 
-//------------Шумы 3Д------------------
+//------------Шум 3Д------------------
 void Noise3D()
 {
   if (loadingFlag)
@@ -35,7 +35,6 @@ void Noise3D()
   {
     for (uint8_t j = 0; j < HEIGHT; j++)
     {
-      CRGB thisColor = CHSV(noise[j][i], 255, noise[i][j]);
       drawPixelXY(i, j, CHSV(noise[j][i], 255, noise[i][j]));
     }
   }

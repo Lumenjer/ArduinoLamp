@@ -101,7 +101,7 @@ void lightersRoutine() {
       lightersPos[1][i] = (HEIGHT - 1) * 10;
       lightersSpeed[1][i] = -lightersSpeed[1][i];
     }
-    drawPixelXYF((float)lightersPos[0][i] / 10, (float)lightersPos[1][i] / 10, CHSV(lightersColor[i], 255U - (i * 2), lightersBright[i]));
+    drawPixelXY(lightersPos[0][i] / 10, lightersPos[1][i] / 10, CHSV(lightersColor[i], 255U - (i * 2), lightersBright[i]));
   }
 }
 // --------------------------------- конфетти ------------------------------------
@@ -168,7 +168,7 @@ void colorsRoutine() {
 //Настройка насищенности - stepko
 void colorRoutine() {
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV(Scale * 2.5, Speed, 255);
+    leds[i] = CHSV(Scale, Speed, 255);
   }
 }
 
@@ -222,7 +222,7 @@ void matrixRoutine()
   }
 }
 // ------------------------------ снегопад 2.5 --------------------------------
-void snowRoutine() {
+/*void snowRoutine() {
   shiftDown();
 
   for (byte x = 0; x < WIDTH; x++) {
@@ -233,8 +233,38 @@ void snowRoutine() {
     else
       drawPixelXY(x, HEIGHT - 1, 0x000000);
   }
+}*/
+// ============= ЭФФЕКТ ДОЖДЬ ===============
+// от @Shaitan
+void RainRoutine()
+{
+  for (uint8_t x = 0U; x < WIDTH; x++)
+  {
+    // заполняем случайно верхнюю строку
+    CRGB thisColor = getPixColorXY(x, HEIGHT - 1U);
+    if ((uint32_t)thisColor == 0U)
+    {
+     if (random8(0, 50) == 0U)
+      {
+      if (Scale==1) drawPixelXY(x, HEIGHT - 1U, CHSV(random(0, 9) * 28, 255U, 255U)); // Радужный дождь
+      else
+      if (Scale>=100) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
+      else
+      drawPixelXY(x, HEIGHT - 1U, CHSV(Scale*2.4+random(0, 16),255,255)); // Цветной дождь
+      }
+  }
+    else
+       leds[XY(x,HEIGHT - 1U)]-=CHSV(0,0,random(96, 128));
+  }
+  // сдвигаем всё вниз
+  for (uint8_t x = 0U; x < WIDTH; x++)
+  {
+    for (uint8_t y = 0U; y < HEIGHT - 1U; y++)
+    {
+      drawPixelXY(x, y, getPixColorXY(x, y + 1U));
+    }
+  }
 }
-
 
 // ------------- белый свет (светится горизонтальная полоса по центру лампы; масштаб - высота центральной горизонтальной полосы; скорость - регулировка от холодного к тёплому; яркость - общая яркость) -------------
 // mod by @Fruity
@@ -376,7 +406,7 @@ void ballRoutine()
 
   for (uint8_t i = 0U; i < deltaValue; i++)
     for (uint8_t j = 0U; j < deltaValue; j++)
-      drawPixelXYF((float)lightersPos[0][0] / 10 + i, (float)lightersPos[1][0] / 10 + j, CHSV(lightersColor[0], 255, 255));
+      drawPixelXY(lightersPos[0][0] / 10 + i, lightersPos[1][0] / 10 + j, CHSV(lightersColor[0], 255, 255));
 }
 
 //-----------------Светлячки со шлейфом----------------------------------
@@ -428,7 +458,7 @@ void ballsRoutine()
       lightersPos[1][j] = (HEIGHT - 1) * 10;
       lightersSpeed[1][j] = -lightersSpeed[1][j];
     }
-    drawPixelXYF((float)lightersPos[0][j] / 10, (float)lightersPos[1][j] / 10, CHSV(lightersColor[j], 255, 255));
+    drawPixelXY(lightersPos[0][j] / 10, lightersPos[1][j] / 10, CHSV(lightersColor[j], 255, 255));
   }
 }
 
@@ -442,14 +472,14 @@ void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать 
     for (int8_t x = -2; x < 3; x++)
       for (int8_t y = -2; y < 3; y++)
         if (abs(x) + abs(y) < 4)
-          drawPixelXYF(fmod(ball[l][1] + x + WIDTH, WIDTH), ball[l][0] + y, color);
+          drawPixelXYF_Y(ball[l][1] + x, ball[l][0] + y, color);
   }
   else
   {
     for (int8_t x = -1; x < 3; x++)
       for (int8_t y = -1; y < 3; y++)
         if (!(x == -1 && (y == -1 || y == 2) || x == 2 && (y == -1 || y == 2)))
-          drawPixelXYF(fmod(ball[l][1] + x + WIDTH, WIDTH), ball[l][0] + y, color);
+          drawPixelXYF_Y(ball[l][1] + x, ball[l][0] + y, color);
   }
 }
 

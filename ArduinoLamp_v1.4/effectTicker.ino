@@ -14,7 +14,7 @@ void effectsTick() {
         case 8 : ballRoutine();                 break;
         case 9 : ballsRoutine();                break;
         case 10: matrixRoutine();               break;
-        case 11: snowRoutine();                 break;
+        case 11: RainRoutine();                 break;
         case 12: stormRoutine();                break;
         //case 14: lightersRoutine();             break;
       }
