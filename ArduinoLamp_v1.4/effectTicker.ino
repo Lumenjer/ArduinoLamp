@@ -49,7 +49,7 @@ void effectsTick() {
           break;
 #endif
       }
-#if (CONTROL_TYPE == 0 || CONTROL_TYPE == 6)
+#if (CONTROL_TYPE == 0 || CONTROL_TYPE == 5)
       if (!IRLremote.receiving())    // если на ИК приёмник не приходит сигнал (без этого НЕ РАБОТАЕТ!)
         FastLED.show();
 #else
@@ -66,7 +66,7 @@ void demoTick() {
     else
       currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
     memset8( leds, 0, NUM_LEDS * 3);
-    DemTimer = millis() + DEMOT;
+    DemTimer = millis() + DEMOT*1000;
     loadingFlag = true;
   }
 }

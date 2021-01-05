@@ -1,6 +1,6 @@
 //Кнопка с ИК пультом
 // ---- Кнопка ----
-#define BUTTON_TYPE 1  //0-Сенсорные, 1-Тактовые
+#define BUTTON_TYPE 1  //0-Сенсорна, 1-Тактовая
 #define CONTROL_PIN2 3 //пин кнопки
 // ----- ПУЛЬТ ИК -----         
 #define IR_NEXT 0xA21606B5            // код пульта для Следующего Эффекта
@@ -26,7 +26,7 @@ GButton touch(CONTROL_PIN2, HIGH_PULL, NORM_OPEN);
 #endif
 boolean inDirection;
 
-void ButtTick() {
+void ButtonTick() {
   touch.tick();
   if (!ONflag) {
   if (touch.isSingle()) {
@@ -233,7 +233,7 @@ void IRTick() {
 FastLED.setBrightness(modes[currentMode].Brightness);
 }
 controlTick(){
-  ButtTick();
+  ButtonTick();
   IRTick();
   }
 
