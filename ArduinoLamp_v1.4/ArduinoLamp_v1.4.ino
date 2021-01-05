@@ -12,16 +12,11 @@
 */
 // ---------------- БИБЛИОТЕКИ -----------------
 #include <FastLED.h>
+#include <EEPROM.h>
 // ----------------- ПЕРЕМЕННЫЕ ------------------
 #include "Constants.h"
 #define NUM_LEDS WIDTH * HEIGHT
 CRGB leds[NUM_LEDS];
-struct {
-  byte Brightness = 10;
-  byte Speed = 30;
-  byte Scale = 10;
-} modes[MODE_AMOUNT]; //настройки эффектов по умолчанию
-int8_t currentMode = 10;
 boolean loadingFlag = true;
 boolean ONflag = true;
 byte numHold;
@@ -52,11 +47,11 @@ void changePower() {    // плавное включение/выключени�
     FastLED.show();
   }
 }
-#include <EEPROM.h>
+
 #if(CONTROL_TYPE == 0)
 #include "IrControl.h"
 #elif(CONTROL_TYPE == 1)
-#include "button.h"
+#include "1_BTn.h"
 #elif(CONTROL_TYPE == 2)
 #include "2_BTns.h"
 #elif(CONTROL_TYPE == 3)
@@ -64,12 +59,12 @@ void changePower() {    // плавное включение/выключени�
 #elif(CONTROL_TYPE == 4)
 #include "4_BTns.h"
 #elif(CONTROL_TYPE == 5)
-#include "ButtWIR.h"
+#include "ButtonWithIR.h"
 #else
 void controlTick() {return;}
 void SetUP() {return;}
 #endif
-// ----------------- ПЕРЕМЕННЫЕ ------------------
+// ----------- ЗАПУСК ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
 void setup() {
   // ЛЕНТА
@@ -94,7 +89,6 @@ void setup() {
       modes[x].Speed = EEPROM.read(x * 3 + 12);
       modes[x].Scale = EEPROM.read(x * 3 + 13);
     }
-
   }
 }
 void loop() {

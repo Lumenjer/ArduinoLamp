@@ -1,4 +1,5 @@
-// ************* НАСТРОЙКИ *************
+// ---------------- ШУМ 3D ---------------------
+// =============== НАСТРОЙКИ =============
 // The 16 bit version of our coordinates
 static uint16_t x;
 static uint16_t y;
@@ -17,7 +18,6 @@ uint8_t noise[HEIGHT][HEIGHT];
 
 
 CRGBPalette16 currentPalette(PartyColors_p);
-uint8_t colorLoop = 1;
 uint8_t ihue = 0;
 
 void Noise3D()
@@ -28,9 +28,6 @@ void Noise3D()
     currentPalette = *curPalette;
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    if (modes[currentMode].Speed % 2)
-      colorLoop = 0;
-    else colorLoop = 1;
   }
   if (palette<=9)
   fillNoiseLED();
@@ -47,7 +44,7 @@ void Noise3D()
   ihue += 1;
 }}
 
-// ************* СЛУЖЕБНЫЕ *************
+// --------------- СЛУЖЕБНЫЕ --------------
 void fillNoiseLED()
 {
   uint8_t dataSmoothing = 0;
@@ -88,7 +85,7 @@ void fillNoiseLED()
       uint8_t index = noise[j][i];
       uint8_t bri =   noise[i][j];
       // if this palette is a 'loop', add a slowly-changing base value
-      if ( colorLoop)
+      if (modes[currentMode].Speed % 2)
       {
         index += ihue;
       }

@@ -61,10 +61,11 @@ void effectsTick() {
 
 void demoTick() {
   if (isDemo && ONflag && millis() >= DemTimer) {
-    if (RANDOM_DEMO)
+    #ifdef RANDOM_DEMO
       currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
-    else
+    #else
       currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
+    #endif
     memset8( leds, 0, NUM_LEDS * 3);
     DemTimer = millis() + DEMOT*1000;
     loadingFlag = true;
