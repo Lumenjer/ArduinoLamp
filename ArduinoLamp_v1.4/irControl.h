@@ -1,4 +1,4 @@
-// ----- IR REMOTE / ПУЛЬТ ДУ ----- MusicColor
+// ----- IR REMOTE / ИК ПУЛЬТ ----- MusicColor
            
 #define IR_NEXT 0xA21606B5            // код пульта для Следующего Эффекта
 #define IR_PREVIOUS 0xA52ACBB5        // код пульта для Предыдущего Эффекта
@@ -18,6 +18,7 @@
 #include <IRLremote.h>
 CHashIR IRLremote;
 uint32_t IRdata;
+boolean ir_flag = false;
 
 bool inDirection;void debugPrint() {
 #ifdef DEBUG

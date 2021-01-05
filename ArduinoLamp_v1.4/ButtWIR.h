@@ -1,8 +1,8 @@
+//Кнопка с ИК пультом
+// ---- Кнопка ----
 #define BUTTON_TYPE 1  //0-Сенсорные, 1-Тактовые
 #define CONTROL_PIN2 3 //пин кнопки
-
-// ----- IR REMOTE / ПУЛЬТ ДУ ----- MusicColor
-           
+// ----- ПУЛЬТ ИК -----         
 #define IR_NEXT 0xA21606B5            // код пульта для Следующего Эффекта
 #define IR_PREVIOUS 0xA52ACBB5        // код пульта для Предыдущего Эффекта
 #define IR_BRIGHT_DOWN 0xB1AE17B5     // код пульта для понижения Яркости
@@ -16,7 +16,7 @@
 #define IR_SAVE 0x8D1B67B5            // код пульта для сохранения настроек эффектов 
 #define IR_DEMO 0xB50F59B5            // код пульта для включения или выключения демо
 #define IR_1 0x1E4E56B5               // код пульта 
-
+//------------------------
 #include <GyverButtonOld.h>
 
 #if (BUTTON_TYPE == 0)
@@ -127,6 +127,7 @@ void ButtTick() {
 #include <IRLremote.h>
 CHashIR IRLremote;
 uint32_t IRdata;
+boolean ir_flag = false;
 
 void debugPrint() {
 return;

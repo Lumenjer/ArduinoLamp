@@ -1,3 +1,4 @@
+//4 Кнопки
 #define BUTTON_TYPE 1  //0-Сенсорные, 1-Тактовые
 #define CONTROL_PIN2 3 //пин второй кнопки
 #define CONTROL_PIN3 5 //пин третий кнопки

@@ -1,8 +1,12 @@
-uint32_t effTimer;
-byte ind;
+// Если вы хотите добавить эффекты или сделать им копии для демонстрации на разных настройках, нужно делать это в 5 местах:
+// 1. в файле effects.ino - добавляется программный код самого эффекта.
+// 2. В Constants.h указывается общее количество MODE_AMOUNT.
+// 3. здесь в файле effectTicker.ino - подключается процедура вызова эффекта case"номер": "назва эффекта"; break; 
+//    Можно подключать один и тот же эффект под разными номерами. Но это уже слишком.
+uint32_t effTimer; byte ind;
 void effectsTick() {
   {
-    if (ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 6) ? 256-modes[currentMode].Speed : 50) ) {
+    if (ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 6) ? 256 - modes[currentMode].Speed : 50) ) {
       effTimer = millis(); switch (currentMode) {
         //|номер   |название функции эффекта     |тоже надо|
         case 0 : sparklesRoutine();             break;
@@ -45,23 +49,24 @@ void effectsTick() {
           break;
 #endif
       }
-      #if (CONTROL_TYPE == 1 || CONTROL_TYPE == 6)
+#if (CONTROL_TYPE == 0 || CONTROL_TYPE == 6)
       if (!IRLremote.receiving())    // если на ИК приёмник не приходит сигнал (без этого НЕ РАБОТАЕТ!)
         FastLED.show();
-      #else
+#else
       FastLED.show();
-      #endif
+#endif
     }
   }
 }
 
- void demoTick(){
-  if (isDemo && ONflag && millis() >= DemTimer){
-    if(RANDOM_DEMO)
-    currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
-    else 
-    currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
+void demoTick() {
+  if (isDemo && ONflag && millis() >= DemTimer) {
+    if (RANDOM_DEMO)
+      currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
+    else
+      currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
     memset8( leds, 0, NUM_LEDS * 3);
-    DemTimer = millis() + DEMOTIMELIMIT;
-    loadingFlag = true;}
+    DemTimer = millis() + DEMOT;
+    loadingFlag = true;
+  }
 }
