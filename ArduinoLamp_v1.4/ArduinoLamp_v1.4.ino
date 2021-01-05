@@ -59,6 +59,8 @@ void changePower() {    // плавное включение/выключени�
 #include "Bluetooth.h"
 #elif(CONTROL_TYPE == 5)
 #include "3_BTns.h"
+#elif(CONTROL_TYPE == 6)
+#include "ButtWIR.h"
 #else
 void controlTick(){return;}
 void SetUP(){return;}

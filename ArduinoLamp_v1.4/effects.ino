@@ -154,9 +154,22 @@ void colorsRoutine() {
 // --------------------------------- ЦВЕТ ------------------------------------
 void colorRoutine() {
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV(modes[currentMode].Scale * 2.5, modes[currentMode].Speed * 2.5, 255);
+    leds[i] = CHSV(modes[currentMode].Scale, modes[currentMode].Speed, 255);
   }
 }
+// ------------------------------ снегопад 2.5 --------------------------------
+/*void snowRoutine() {
+  shiftDown();
+
+  for (byte x = 0; x < WIDTH; x++) {
+    // заполняем случайно верхнюю строку
+    // а также не даём двум блокам по вертикали вместе быть
+    if (getPixColorXY(x, HEIGHT - 2) == 0 && (random(0, modes[currentMode].Scale) == 0))
+      drawPixelXY(x, HEIGHT - 1U, CHSV(0, 0, random(50, 255)));
+    else
+      drawPixelXY(x, HEIGHT - 1, 0x000000);
+  }
+}*/
 // ============= ЭФФЕКТ ДОЖДЬ ===============
 // от @Shaitan
 void RainRoutine()
@@ -188,19 +201,7 @@ void RainRoutine()
     }
   }
 }
-// ------------------------------ снегопад 2.5 --------------------------------
-/*void snowRoutine() {
-  shiftDown();
 
-  for (byte x = 0; x < WIDTH; x++) {
-    // заполняем случайно верхнюю строку
-    // а также не даём двум блокам по вертикали вместе быть
-    if (getPixColorXY(x, HEIGHT - 2) == 0 && (random(0, modes[currentMode].Scale) == 0))
-      drawPixelXY(x, HEIGHT - 1U, CHSV(0, 0, random(50, 255)));
-    else
-      drawPixelXY(x, HEIGHT - 1, 0x000000);
-  }
-}*/
 
 // ------------------------------ МАТРИЦА ------------------------------
 void matrixRoutine()

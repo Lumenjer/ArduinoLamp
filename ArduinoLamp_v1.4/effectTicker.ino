@@ -44,7 +44,7 @@ void effectsTick() {
           break;
 #endif
       }
-      #if (CONTROL_TYPE == 1)
+      #if (CONTROL_TYPE == 1 || CONTROL_TYPE == 6)
       if (!IRLremote.receiving())    // если на ИК приёмник не приходит сигнал (без этого НЕ РАБОТАЕТ!)
         FastLED.show();
       #else
