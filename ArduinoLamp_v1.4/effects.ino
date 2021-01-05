@@ -675,3 +675,32 @@ void LavaLampRoutine() {
     }
   }
 }
+
+// ============= Эффект Кипение ===============
+// (c) SottNick
+//по мотивам LDIRKO Ленд - эффект номер 10
+//...ldir... Yaroslaw Turbin, 18.11.2020 
+//https://vk.com/ldirko
+//https://www.reddit.com/user/ldirko/
+
+void LLandRoutine(){
+  if (loadingFlag) {
+    loadingFlag = false;
+    setCurrentPalette(palette);
+    //speedfactor = fmap(modes[currentMode].Speed, 1., 255., 20., 1.) / 16.;
+    deltaValue = 10U * ((modes[currentMode].Scale - 1U) % 11U + 1U);// значения от 1 до 11 
+    // значения от 0 до 10 = ((modes[currentMode].Scale - 1U) % 11U)
+
+  }
+  hue2 += 32U;
+  if (hue2 < 32U)
+    hue++;
+  //float t = (float)millis() / speedfactor;
+  ff_y += 16U;
+  
+  for (uint8_t y = 0; y < HEIGHT; y++)
+    for (uint16_t x = 0; x < WIDTH; x++)
+      //drawPixelXY(x, y, ColorFromPalette (*curPalette, map(inoise8(x * 50, y * 50 - t, 0) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
+      drawPixelXY(x, y, ColorFromPalette (*curPalette, map(inoise8(x * deltaValue, y * deltaValue - ff_y, ff_z) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
+  ff_z++;      
+}
