@@ -1,7 +1,7 @@
 //Кнопка с ИК пультом
 // ---- Кнопка ----
 #define BUTTON_TYPE 1  //0-Сенсорна, 1-Тактовая
-#define CONTROL_PIN2 3 //пин кнопки
+#define BUTTON_PIN 6 //пин кнопки
 // ----- ПУЛЬТ ИК -----
 #define IR_ON 0x1AED14B5              // код пульта для Включения/Выключения         
 #define IR_NEXT 0xA21606B5            // код пульта для Следующего Эффекта
@@ -21,13 +21,16 @@
 #include <IRLremote.h>
 // ------- КНОПКА---------
 #if (BUTTON_TYPE == 0)
-GButton touch(CONTROL_PIN2, LOW_PULL, NORM_OPEN);
+GButton touch(BUTTON_PIN, LOW_PULL, NORM_OPEN);
 #else
-GButton touch(CONTROL_PIN2, HIGH_PULL, NORM_OPEN);
+GButton touch(BUTTON_PIN, HIGH_PULL, NORM_OPEN);
 #endif
 boolean inDirection;
+CHashIR IRLremote;
+uint32_t IRdata;
+boolean ir_flag = false;
 
-void ButtonTick() {
+void controlTick() {
   touch.tick();
   if (!ONflag) {
   if (touch.isSingle()) {
@@ -101,36 +104,7 @@ void ButtonTick() {
       inDirection = !inDirection;
       numHold = 3;
     }
-
-    if (touch.isStep()) {
-      if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
-      switch (numHold) {
-        case 1:
-          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
-          break;
-        case 2:
-          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
-          break;
-
-        case 3:
-          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
-          break;
-      }
-    }
-    if ((millis() - numHold_Timer) > numHold_Time) {
-      numHold = 0;
-      numHold_Timer = millis();
-    }
-    FastLED.setBrightness(modes[currentMode].Brightness);
-  }
-}
-// ------- ПУЛЬТ---------
-CHashIR IRLremote;
-uint32_t IRdata;
-boolean ir_flag = false;
-
-void IRTick() {
-  if (IRLremote.available())  {
+    if (IRLremote.available())  {
     auto data = IRLremote.read();
     IRdata = data.command;
     ir_flag = true;
@@ -205,35 +179,32 @@ void IRTick() {
         break;
     }
     ir_flag = false;
+  }
+    if (touch.isStep() || ir_flag) {
+      if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
+      switch (numHold) {
+        case 1:
+          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
+          break;
+        case 2:
+          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          break;
 
-    if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
-    switch (numHold) {
-      case 1:
-        modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
-        break;
-      case 2:
-        modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
-        break;
-      case 3:
-        modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
-        break;
+        case 3:
+          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          break;
+      }
     }
+    if ((millis() - numHold_Timer) > numHold_Time) {
+      numHold = 0;
+      numHold_Timer = millis();
+    }
+    FastLED.setBrightness(modes[currentMode].Brightness);
   }
-  if ((millis() - numHold_Timer) > numHold_Time) {
-    numHold = 0;
-    numHold_Timer = millis();
-  }
-
-FastLED.setBrightness(modes[currentMode].Brightness);
 }
-// ---------------
-controlTick(){
-  ButtonTick();
-  IRTick();
-  }
-
-void SetUP(){
-  IRLremote.begin(CONTROL_PIN);
+// ------- ПУЛЬТ---------
+void SetUP(){  
   touch.setStepTimeout(100);
   touch.setClickTimeout(500);
+  IRLremote.begin(CONTROL_PIN);
   }

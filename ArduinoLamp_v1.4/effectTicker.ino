@@ -66,6 +66,9 @@ void demoTick() {
     #else
       currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
     #endif
+    #ifdef RAND_EFF
+      Speed = random8(); Scale = random8();
+    #endif  
     memset8( leds, 0, NUM_LEDS * 3);
     DemTimer = millis() + DEMOT*1000;
     loadingFlag = true;
