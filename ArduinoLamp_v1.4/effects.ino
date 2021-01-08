@@ -577,21 +577,21 @@ void FireRoutine() {
 // ----------------------------------- ЛАВОЛАМПА ------------------------------
 //Основа @SottNick
 //Оптимизация @Stepko
-float ball[(WIDTH / 2) -  ((WIDTH - 1) & 0x01)][3];
+float ball[(WIDTH / 2) -  ((WIDTH - 1) & 0x01)][2];
 void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать не получается, будем попиксельно вырисовывать 2 варианта пузырей
   if (lightersSpeed[0][l] == 2)
   {
     for (int8_t x = -2; x < 3; x++)
       for (int8_t y = -2; y < 3; y++)
         if (abs(x) + abs(y) < 4)
-          drawPixelXYF_Y(ball[l][1] + x, ball[l][0] + y, color);
+          drawPixelXYF_Y(lightersSpeed[1][l] + x, ball[l][0] + y, color);
   }
   else
   {
     for (int8_t x = -1; x < 3; x++)
       for (int8_t y = -1; y < 3; y++)
         if (!(x == -1 && (y == -1 || y == 2) || x == 2 && (y == -1 || y == 2)))
-          drawPixelXYF_Y(ball[l][1] + x, ball[l][0] + y, color);
+          drawPixelXYF_Y(lightersSpeed[1][l] + x, ball[l][0] + y, color);
   }
 }
 
@@ -599,12 +599,9 @@ void LavaLampRoutine() {
   if (loadingFlag)
   { for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
       lightersSpeed[0][i] = random(1, 3);
-      ball[i][2] = (float)random8(5, 11) / (modes[currentMode].Speed) / 4.0;
+      ball[i][1] = (float)random8(5, 11) / (modes[currentMode].Speed) / 4.0;
       ball[i][0] = 0;
-      ball[i][1] = i * 2U + random8(2);
-      if ( ball[i][2] == 0)
-        ball[i][2] = 1;
-    }
+      lightersSpeed[1][i] = i * 2U + random8(2);}
     loadingFlag = false;
   }
   dimAll(100);
@@ -618,18 +615,18 @@ void LavaLampRoutine() {
       drawBlob(i, CHSV(modes[currentMode].Scale, 255, 255));
 
     if (ball[i][0] + lightersSpeed[0][i] >= HEIGHT - 1)
-      ball[i][0] += (ball[i][2] * ((HEIGHT - 1 - ball[i][0]) / lightersSpeed[0][i] + 0.005));
+      ball[i][0] += (ball[i][1] * ((HEIGHT - 1 - ball[i][0]) / lightersSpeed[0][i] + 0.005));
     else if (ball[i][0] - lightersSpeed[0][i] <= 0)
-      ball[i][0] += (ball[i][2] * (ball[i][0] / lightersSpeed[0][i] + 0.005));
+      ball[i][0] += (ball[i][1] * (ball[i][0] / lightersSpeed[0][i] + 0.005));
     else
-      ball[i][0] += ball[i][2];
+      ball[i][0] += ball[i][1];
     if (ball[i][0] < 0.01) {                  // почему-то при нуле появляется мерцание (один кадр, еле заметно)
-      ball[i][2] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
+      ball[i][1] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
       ball[i][0] = 0.01;
     }
     else if (ball[i][0] > HEIGHT - 1.01) {    // тоже на всякий пожарный
-      ball[i][2] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
-      ball[i][2] = -ball[i][2];
+      ball[i][1] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
+      ball[i][1] = -ball[i][1];
       ball[i][0] = HEIGHT - 1.01;
     }
   }

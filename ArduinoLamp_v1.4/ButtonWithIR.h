@@ -1,8 +1,8 @@
 //Кнопка с ИК пультом
 // ---- Кнопка ----
-#define BUTTON_TYPE 1  //0-Сенсорна, 1-Тактовая
+#define BUTTON_TYPE 1    //0-Сенсорна, 1-Тактовая
 //#define CONTROL_PIN 2 //пин ИК приемника
-#define BUTTON_PIN 6 //пин кнопки
+#define BUTTON_PIN 6    //пин кнопки
 // ----- ПУЛЬТ ИК -----
 #define IR_ON 0x1AED14B5              // код пульта для Включения/Выключения         
 #define IR_NEXT 0xA21606B5            // код пульта для Следующего Эффекта
@@ -108,7 +108,22 @@ void controlTick() {
         break;
     }
     ir_flag = false;
-  }
+    
+    if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
+      switch (numHold) {
+        case 1:
+          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
+          break;
+        case 2:
+          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          break;
+
+        case 3:
+          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          break;
+      }
+    }
+  
   
   touch.tick();
   if (!ONflag) {
@@ -185,7 +200,7 @@ void controlTick() {
     }
 
 
-    if (touch.isStep() || ir_flag) {
+    if (touch.isStep()) {
       if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
       switch (numHold) {
         case 1:
