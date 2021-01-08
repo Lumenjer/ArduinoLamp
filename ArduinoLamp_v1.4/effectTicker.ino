@@ -30,22 +30,22 @@ void effectsTick() {
         case 1:
           ind = sqrt(modes[currentMode].Brightness + 1);
           for (byte x = 0; x < HEIGHT ; x++) {
-            if (ind > x) drawPixelXY(x, 0, CHSV(10, 255, 255));
-            else drawPixelXY(x, 0,  0);
+            if (ind > x) drawPixelXY(x, IND_POS, CHSV(10, 255, 255));
+            else drawPixelXY(x, IND_POS,  0);
           }
           break;
         case 2:
           ind = sqrt(modes[currentMode].Speed + 1);
           for (byte x = 0; x < WIDTH ; x++) {
-            if (ind <= x) drawPixelXY(x, 0, CHSV(100, 255, 255));
-            else drawPixelXY(x, 0,  0);
+            if (ind > x) drawPixelXY(x, IND_POS, CHSV(100, 255, 255));
+            else drawPixelXY(x, IND_POS,  0);
           }
           break;
         case 3:
           ind = sqrt(modes[currentMode].Scale + 1);
           for (byte x = 0; x < WIDTH ; x++) {
-            if (ind > x) drawPixelXY(x, 0, CHSV(150, 255, 255));
-            else drawPixelXY(x, 0,  0);
+            if (ind > x) drawPixelXY(x, IND_POS, CHSV(150, 255, 255));
+            else drawPixelXY(x, IND_POS,  0);
           }
           break;
           #else
@@ -54,21 +54,21 @@ void effectsTick() {
           ind = sqrt(modes[currentMode].Brightness + 1);
           for (byte y = 0; y < HEIGHT ; y++) {
             if (ind > y) drawPixelXY(0, y, CHSV(10, 255, 255));
-            else drawPixelXY(0, y,  0);
+            else drawPixelXY(IND_POS, y,  0);
           }
           break;
         case 2:
           ind = sqrt(modes[currentMode].Speed + 1);
           for (byte y = 0; y <= HEIGHT ; y++) {
-            if (ind <= y) drawPixelXY(0, y, CHSV(100, 255, 255));
-            else drawPixelXY(0, y,  0);
+            if (ind > y) drawPixelXY(IND_POS, y, CHSV(100, 255, 255));
+            else drawPixelXY(IND_POS, y,  0);
           }
           break;
         case 3:
           ind = sqrt(modes[currentMode].Scale + 1);
           for (byte y = 0; y < HEIGHT ; y++) {
-            if (ind > y) drawPixelXY(0, y, CHSV(150, 255, 255));
-            else drawPixelXY(0, y,  0);
+            if (ind > y) drawPixelXY(IND_POS, y, CHSV(150, 255, 255));
+            else drawPixelXY(IND_POS, y,  0);
           }
           break;
           #endif
@@ -91,7 +91,7 @@ void demoTick() {
     #else
       currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
     #endif
-    #ifdef RAND_EFF
+    #ifdef RANDOM_EFF
       Speed = random8(); Scale = random8();
     #endif  
     memset8( leds, 0, NUM_LEDS * 3);

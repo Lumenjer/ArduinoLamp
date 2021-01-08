@@ -31,6 +31,8 @@ bool inDirection;void debugPrint() {
   Serial.print(modes[currentMode].Scale);
   Serial.print(F("mode:"));
   Serial.print(currentMode);
+#else
+return;
 #endif
 }
 
