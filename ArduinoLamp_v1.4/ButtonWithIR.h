@@ -1,6 +1,7 @@
 //Кнопка с ИК пультом
 // ---- Кнопка ----
 #define BUTTON_TYPE 1  //0-Сенсорна, 1-Тактовая
+//#define CONTROL_PIN 2 //пин ИК приемника
 #define BUTTON_PIN 6 //пин кнопки
 // ----- ПУЛЬТ ИК -----
 #define IR_ON 0x1AED14B5              // код пульта для Включения/Выключения         
@@ -30,8 +31,87 @@ CHashIR IRLremote;
 uint32_t IRdata;
 boolean ir_flag = false;
 
-void controlTick() {
+void controlTick() { 
+      if (IRLremote.available())  {
+    auto data = IRLremote.read();
+    IRdata = data.command;
+    ir_flag = true;
+  }
+  if (ir_flag) { // если данные пришли
+    switch (IRdata) {
+      // режимы
+      case IR_ON:
+      if (ONflag) {
+          ONflag = false;
+          changePower();
+        } else {
+          ONflag = true;
+          changePower();
+        }
+        break;
+      case IR_NEXT:
+        if (++currentMode >= MODE_AMOUNT) currentMode = 0;
+        FastLED.setBrightness(modes[currentMode].Brightness);
+        loadingFlag = true;
+        //settChanged = true;
+        memset8( leds, 0, NUM_LEDS * 3);
+        delay(1);
+        break;
+      case IR_PREVIOUS:
+        if (--currentMode < 0) currentMode = MODE_AMOUNT - 1;
+        FastLED.setBrightness(modes[currentMode].Brightness);
+        loadingFlag = true;
+        //settChanged = true;
+        memset8( leds, 0, NUM_LEDS * 3);
+        delay(1);
+        break;
+      case IR_DEMO:
+        isDemo = !isDemo;
+        
+        break;
+      case IR_PALETTE:
+        if (palette >= 10) palette = 0;
+        else palette ++;
+        loadingFlag = true;
+        break;
+      case IR_SAVE:   if (EEPROM.read(0) != 102) EEPROM.write(0, 102);
+        if (EEPROM.read(1) != currentMode) EEPROM.write(1, currentMode);  // запоминаем текущий эфект
+        for (byte x = 0; x < MODE_AMOUNT; x++) {                          // сохраняем настройки всех режимов
+          if (EEPROM.read(x * 3 + 11) != modes[x].Brightness) EEPROM.write(x * 3 + 11, modes[x].Brightness);
+          if (EEPROM.read(x * 3 + 12) != modes[x].Speed) EEPROM.write(x * 3 + 12, modes[x].Speed);
+          if (EEPROM.read(x * 3 + 13) != modes[x].Scale) EEPROM.write(x * 3 + 13, modes[x].Scale);
+        }
+        // индикация сохранения
+        ONflag = false;
+        changePower();
+        delay(200);
+        ONflag = true;
+        changePower();
+        break;
+      case IR_BRIGHT_UP:  numHold = 1;
+        inDirection = true;
+        break;
+      case IR_BRIGHT_DOWN: numHold = 1;
+        inDirection = false;
+        break;
+      case IR_SPEED_UP: numHold = 2;
+        inDirection = true;
+        break;
+      case IR_SPEED_DOWN: numHold = 2;
+        inDirection = false;
+        break;
+      case IR_SCALE_UP: numHold = 3;
+        inDirection = true;
+        break;
+      case IR_SCALE_DOWN: numHold = 3;
+        inDirection = false;
+        break;
+    }
+    ir_flag = false;
+  }
+  
   touch.tick();
+  if (!IRLremote.receiving()) {
   if (!ONflag) {
   if (touch.isSingle()) {
     {
@@ -104,82 +184,8 @@ void controlTick() {
       inDirection = !inDirection;
       numHold = 3;
     }
-    if (IRLremote.available())  {
-    auto data = IRLremote.read();
-    IRdata = data.command;
-    ir_flag = true;
-  }
-  if (ir_flag) { // если данные пришли
-    switch (IRdata) {
-      // режимы
-      case IR_ON:   if (ONflag) {
-          ONflag = false;
-          changePower();
-        } else {
-          ONflag = true;
-          changePower();
-        }
-        break;
-      case IR_NEXT:
-        if (++currentMode >= MODE_AMOUNT) currentMode = 0;
-        FastLED.setBrightness(modes[currentMode].Brightness);
-        loadingFlag = true;
-        //settChanged = true;
-        memset8( leds, 0, NUM_LEDS * 3);
-        delay(1);
-        break;
-      case IR_PREVIOUS:
-        if (--currentMode < 0) currentMode = MODE_AMOUNT - 1;
-        FastLED.setBrightness(modes[currentMode].Brightness);
-        loadingFlag = true;
-        //settChanged = true;
-        memset8( leds, 0, NUM_LEDS * 3);
-        delay(1);
-        break;
-      case IR_DEMO:
-        isDemo = !isDemo;
-        
-        break;
-      case IR_PALETTE:
-        if (palette >= 10) palette = 0;
-        else palette ++;
-        loadingFlag = true;
-        break;
-      case IR_SAVE:   if (EEPROM.read(0) != 102) EEPROM.write(0, 102);
-        if (EEPROM.read(1) != currentMode) EEPROM.write(1, currentMode);  // запоминаем текущий эфект
-        for (byte x = 0; x < MODE_AMOUNT; x++) {                          // сохраняем настройки всех режимов
-          if (EEPROM.read(x * 3 + 11) != modes[x].Brightness) EEPROM.write(x * 3 + 11, modes[x].Brightness);
-          if (EEPROM.read(x * 3 + 12) != modes[x].Speed) EEPROM.write(x * 3 + 12, modes[x].Speed);
-          if (EEPROM.read(x * 3 + 13) != modes[x].Scale) EEPROM.write(x * 3 + 13, modes[x].Scale);
-        }
-        // индикация сохранения
-        ONflag = false;
-        changePower();
-        delay(200);
-        ONflag = true;
-        changePower();
-        break;
-      case IR_BRIGHT_UP:  numHold = 1;
-        inDirection = true;
-        break;
-      case IR_BRIGHT_DOWN: numHold = 1;
-        inDirection = false;
-        break;
-      case IR_SPEED_UP: numHold = 2;
-        inDirection = true;
-        break;
-      case IR_SPEED_DOWN: numHold = 2;
-        inDirection = false;
-        break;
-      case IR_SCALE_UP: numHold = 3;
-        inDirection = true;
-        break;
-      case IR_SCALE_DOWN: numHold = 3;
-        inDirection = false;
-        break;
-    }
-    ir_flag = false;
-  }
+
+
     if (touch.isStep() || ir_flag) {
       if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
       switch (numHold) {
@@ -201,7 +207,7 @@ void controlTick() {
     }
     FastLED.setBrightness(modes[currentMode].Brightness);
   }
-}
+}}
 // ------- ПУЛЬТ---------
 void SetUP(){  
   touch.setStepTimeout(100);

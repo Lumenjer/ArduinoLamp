@@ -1,4 +1,5 @@
 // ----- IR REMOTE / ИК ПУЛЬТ ----- from MusicColor v2 by AlexGyver
+//#define CONTROL_PIN 2 //пин ИК приемника
 
 #define IR_ON 0x1AED14B5              // код пульта для Включения/Выключения         
 #define IR_NEXT 0xA21606B5            // код пульта для Следующего Эффекта

@@ -522,7 +522,7 @@ void drawFrame(int pcnt) {
     leds[getPixelNumber(newX, 0)] = color;
   }
 }
-// -------------------- ОГОНЬ(НОВЫЙ) ------------------
+// ------------------------------ ОГОНЬ(НОВЫЙ) -------------------------
 // (c) SottNick
 //сильно по мотивам https://pastebin.com/RG0QGzfK
 //Perlin noise fire procedure by Yaroslaw Turbin
@@ -574,7 +574,7 @@ void FireRoutine() {
     ff_z++;
 }
 
-// ------------------------------ ЛАВОЛАМПА -----------------------------
+// ----------------------------------- ЛАВОЛАМПА ------------------------------
 //Основа @SottNick
 //Оптимизация @Stepko
 float ball[(WIDTH / 2) -  ((WIDTH - 1) & 0x01)][3];
@@ -606,14 +606,13 @@ void LavaLampRoutine() {
         ball[i][2] = 1;
     }
     loadingFlag = false;
-    setCurrentPalette(palette);
   }
   dimAll(100);
   blurScreen(20);
   for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
     // Draw 'ball'
-    if (palette <= 255)
-      drawBlob(i, ColorFromPalette(*curPalette, ball[i][0] * 16));
+    if (modes[currentMode].Scale = 1)
+      drawBlob(i,CHSV(hue,255,255));
     else
       drawBlob(i, CHSV(modes[currentMode].Scale, 255, 255));
 

@@ -18,7 +18,7 @@ uint8_t noise[HEIGHT][HEIGHT];
 
 
 CRGBPalette16 currentPalette(PartyColors_p);
-uint8_t ihue = 0;
+
 
 void Noise3D()
 {
@@ -41,7 +41,6 @@ void Noise3D()
       drawPixelXY(i, j, CHSV(noise[j][i], 255, noise[i][j]));
     }
   }
-  ihue += 1;
 }}
 
 // --------------- СЛУЖЕБНЫЕ --------------
@@ -87,7 +86,7 @@ void fillNoiseLED()
       // if this palette is a 'loop', add a slowly-changing base value
       if (modes[currentMode].Speed % 2)
       {
-        index += ihue;
+        index += hue;
       }
       // brighten up, as the color palette itself often contains the
       // light/dark dynamic range desired
@@ -103,7 +102,7 @@ void fillNoiseLED()
       drawPixelXY(i, j, color);
     }
   }
-  ihue += 1;
+  hue += 1;
 }
 
 void fillnoise8()
