@@ -111,7 +111,6 @@ void controlTick() {
   }
   
   touch.tick();
-  if (!IRLremote.receiving()) {
   if (!ONflag) {
   if (touch.isSingle()) {
     {
@@ -207,7 +206,7 @@ void controlTick() {
     }
     FastLED.setBrightness(modes[currentMode].Brightness);
   }
-}}
+}
 // ------- ПУЛЬТ---------
 void SetUP(){  
   touch.setStepTimeout(100);

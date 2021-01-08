@@ -26,7 +26,7 @@ bool isDemo = false;           // true - Демо включается при з
 #define RANDOM_DEMO            // Рандомный выбор режима в ДЕМО (Не нужен, коментируйте)
 //#define RAND_EFF             // Рандомне настройки эффекта в ДЕМО (Нужен, Разкоментируйте)
 //-------------------- ПРОЧЕЕ ---------------
-#define MODE_AMOUNT 13         // кол-во эффектов
+#define MODE_AMOUNT 14         // кол-во эффектов
 struct {
   byte Brightness = 10;
   byte Speed = 30;
