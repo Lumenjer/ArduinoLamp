@@ -25,7 +25,31 @@ void effectsTick() {
         case 13: LLandRoutine();                break;
       }
 #ifdef INDICATOR
+   #if (ROATRE)
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
+        case 1:
+          ind = sqrt(modes[currentMode].Brightness + 1);
+          for (byte x = 0; x < HEIGHT ; x++) {
+            if (ind > x) drawPixelXY(x, 0, CHSV(10, 255, 255));
+            else drawPixelXY(x, 0,  0);
+          }
+          break;
+        case 2:
+          ind = sqrt(modes[currentMode].Speed + 1);
+          for (byte x = 0; x < WIDTH ; x++) {
+            if (ind <= x) drawPixelXY(x, 0, CHSV(100, 255, 255));
+            else drawPixelXY(x, 0,  0);
+          }
+          break;
+        case 3:
+          ind = sqrt(modes[currentMode].Scale + 1);
+          for (byte x = 0; x < WIDTH ; x++) {
+            if (ind > x) drawPixelXY(x, 0, CHSV(150, 255, 255));
+            else drawPixelXY(x, 0,  0);
+          }
+          break;
+          #else
+          switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
           ind = sqrt(modes[currentMode].Brightness + 1);
           for (byte y = 0; y < HEIGHT ; y++) {
@@ -34,10 +58,10 @@ void effectsTick() {
           }
           break;
         case 2:
-          ind = sqrt(modes[currentMode].Speed - 1);
+          ind = sqrt(modes[currentMode].Speed + 1);
           for (byte y = 0; y <= HEIGHT ; y++) {
-            if (ind <= y) drawPixelXY(0, 15 - y, CHSV(100, 255, 255));
-            else drawPixelXY(0, 15 - y,  0);
+            if (ind <= y) drawPixelXY(0, y, CHSV(100, 255, 255));
+            else drawPixelXY(0, y,  0);
           }
           break;
         case 3:
@@ -47,6 +71,7 @@ void effectsTick() {
             else drawPixelXY(0, y,  0);
           }
           break;
+          #endif
 #endif
       }
 #if (CONTROL_TYPE == 0 || CONTROL_TYPE == 5)
