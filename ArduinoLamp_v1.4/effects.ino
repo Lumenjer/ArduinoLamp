@@ -293,7 +293,7 @@ void ballRoutine()
       lightersPos[i][0] = WIDTH / 2 * 10;
       lightersSpeed[i][0] = random(4, 10);
     }
-    deltaValue = map(modes[currentMode].Scale * 2.55, 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
+    deltaValue = map(modes[currentMode].Scale, 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
     lightersColor[0] = random(0, 9) * 28;
     //    _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
   }
