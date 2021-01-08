@@ -140,9 +140,9 @@ void RainRoutine()
       {
       if (modes[currentMode].Scale==1) drawPixelXY(x, HEIGHT - 1U, CHSV(random(0, 9) * 28, 255U, 255U)); // Радужный дождь
       else
-      if (modes[currentMode].Scale>=100) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
+      if (modes[currentMode].Scale>=255) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
       else
-      drawPixelXY(x, HEIGHT - 1U, CHSV(modes[currentMode].Scale*2.4+random(0, 16),255,255)); // Цветной дождь
+      drawPixelXY(x, HEIGHT - 1U, CHSV(modes[currentMode].Scale+random(0, 16),255,255)); // Цветной дождь
       }
   }
     else
@@ -171,7 +171,7 @@ void matrixRoutine()
       uint32_t upperColor = getPixColorXY(x, y + 1U);                                        // берём цвет пикселя над нашим
       if (upperColor >= 0x900000 && random(7 * HEIGHT) != 0U)                  // если выше нас максимальная яркость, игнорим этот факт с некой вероятностью или опускаем цепочку ниже
         drawPixelXY(x, y, upperColor);
-      else if (thisColor == 0U && random((100 - modes[currentMode].Scale) * HEIGHT) == 0U)  // если наш пиксель ещё не горит, иногда зажигаем новые цепочки
+      else if (thisColor == 0U && random((255 - modes[currentMode].Scale) * HEIGHT) == 0U)  // если наш пиксель ещё не горит, иногда зажигаем новые цепочки
         //else if (thisColor == 0U && random((100 - modes[currentMode].Scale) * HEIGHT*3) == 0U)  // для длинных хвостов
         drawPixelXY(x, y, 0x9bf800);
       else if (thisColor <= 0x050800)                                                        // если наш пиксель почти погас, стараемся сделать затухание медленней
@@ -191,7 +191,7 @@ void matrixRoutine()
     uint32_t thisColor = getPixColorXY(x, HEIGHT - 1U);
     if (thisColor == 0U)                                                                     // если наш верхний пиксель не горит, заполняем его с вероятностью .Scale
     {
-      if (random(100 - modes[currentMode].Scale) == 0U)
+      if (random(255 - modes[currentMode].Scale) == 0U)
         drawPixelXY(x, HEIGHT - 1U, 0x9bf800);
     }
     else if (thisColor <= 0x050800)                                                          // если наш верхний пиксель почти погас, стараемся сделать затухание медленней
@@ -611,8 +611,9 @@ void LavaLampRoutine() {
   blurScreen(20);
   for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
     // Draw 'ball'
-    if (modes[currentMode].Scale = 1)
+    if (modes[currentMode].Scale == 1){
       drawBlob(i,CHSV(hue,255,255));
+      hue++;}
     else
       drawBlob(i, CHSV(modes[currentMode].Scale, 255, 255));
 
