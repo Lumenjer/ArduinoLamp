@@ -53,7 +53,7 @@ void effectsTick() {
         case 1:
           ind = sqrt(modes[currentMode].Brightness + 1);
           for (byte y = 0; y < HEIGHT ; y++) {
-            if (ind > y) drawPixelXY(0, y, CHSV(10, 255, 255));
+            if (ind > y) drawPixelXY(IND_POS, y, CHSV(10, 255, 255));
             else drawPixelXY(IND_POS, y,  0);
           }
           break;

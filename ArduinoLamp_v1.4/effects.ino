@@ -336,10 +336,10 @@ void ballRoutine()
     //vectorB[1] += random(0, 6) - 3;
   }
 
-  //  if (modes[currentMode].Scale & 0x01)
-  //    dimAll(135U);
-  //    dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);
-  //  else
+      //if (modes[currentMode].Scale & 0x01)
+      //dimAll(135U);
+      //dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);
+    else
   FastLED.clear();
 
   for (uint8_t i = 0U; i < deltaValue; i++)
