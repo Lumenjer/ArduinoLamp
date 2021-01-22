@@ -1,3 +1,7 @@
+// =================== ВНИМАНИЕ !!! =========================
+//  Все настройки делаются на закладке Constants.h
+//  Почитайте там то, что на русском языке написано.
+// ==========================================================
 /*
   Скетч к проекту "Многофункциональный RGB светильник"
   Страница проекта (схемы, описания): https://alexgyver.ru/GyverLamp/
@@ -8,12 +12,14 @@
 // ---------------- БИБЛИОТЕКИ -----------------
 #include <FastLED.h>
 #include <EEPROM.h>
-//-----------------            -----------------
+//------------- СТОРОННИЕ ФАЙЛЫ ----------------
 #include "Constants.h"
 #ifdef TEXTo
 #include "fonts.h"
 #endif
-// ----------------- ПЕРЕМЕННЫЕ ------------------
+// ---------------- ПЕРЕМЕННЫЕ -----------------
+#define NUM_LEDS WIDTH * HEIGHT
+CRGB leds[NUM_LEDS];
 static const byte maxDim = max(WIDTH, HEIGHT);
 byte Brightness = 10; byte Speed = 30; byte Scale = 10;
 String runningText = "";
@@ -25,8 +31,7 @@ boolean fullTextFlag = false;
 uint32_t DemTimer = 0UL;                      // тут будет храниться время следующего переключения эффекта
 boolean BTcontrol = false;
 uint32_t effTimer;
-//int8_t hrs = 10, mins = 25, secs;
-
+// ---------------- ЗАПУСК --------------------
 void setup() {
   // ЛЕНТА
   randomSeed(analogRead(1));

@@ -1,11 +1,11 @@
 void effectsTick() {
   {
-    if (!runningFlag && ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 8) ? 256 - Speed : 50) ) {
+    if (!BTcontrol && !runningFlag && ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 8) ? 256 - Speed : 50) ) {
       effTimer = millis(); switch (currentMode) {
         //|номер   |название функции эффекта     |тоже надо|
         case 0 : sparklesRoutine();             break;
         case 1 : RainbowRoutine();              break;
-        case 2 : fireRoutine();                 break;
+        case 2 : FireRoutine();                 break;
         case 3 : LavaLampRoutine();             break;
         case 4 : Noise3D();                     break;
         case 5 : whiteLampRoutine();            break;
@@ -16,6 +16,7 @@ void effectsTick() {
         case 10: matrixRoutine();               break;
         case 11: RainRoutine();                 break;
         case 12: stormRoutine();                break;
+        case 13: LLandRoutine();                break;
         //case 14: lightersRoutine();             break;
       }
     }
@@ -50,12 +51,14 @@ void changePower() {    // плавное включение/выключени�
 
 void demoTick() {
   if (isDemo && ONflag && millis() >= DemTimer) {
-    if (RANDOM_DEMO == 1)
+    #ifdef RANDOM_DEMO == 1
       currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
-    if (RANDOM_DEMO == 0)
+    #else
       currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
-    if (RANDOM_DEMO == 2)
-      currentMode = random8(MODE_AMOUNT); Speed = random8(); Scale = random8();
+    #endif  
+    #ifdef RAND_EFF
+      Speed = random8(); Scale = random8();
+    #endif  
     memset8( leds, 0, NUM_LEDS * 3);
     DemTimer = millis() + DEMOTIME*1000;
     loadingFlag = true;

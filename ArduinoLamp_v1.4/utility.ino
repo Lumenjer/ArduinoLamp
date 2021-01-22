@@ -19,22 +19,7 @@ void fader(uint8_t step)
     }
   }
 }
-void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // новый фейдер
-{
-  int32_t pixelNum = XY(i, j);
-  if (getPixColor(pixelNum) == 0U) return;
 
-  if (leds[pixelNum].r >= 30U ||
-      leds[pixelNum].g >= 30U ||
-      leds[pixelNum].b >= 30U)
-  {
-    leds[pixelNum].fadeToBlackBy(step);
-  }
-  else
-  {
-    leds[pixelNum] = 0U;
-  }
-}
 
 
 void dimAll(uint8_t value) {

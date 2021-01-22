@@ -16,7 +16,9 @@ void bluetoothRoutine() {
   parsing();                           // принимаем данные
 
   if (!parseStarted) {                // на время принятия данных матрицу не обновляем!
-    if (runningFlag) fillString(runningText, 1);   // бегущая строка
+    #ifdef TEXTo
+    if (runningFlag) fillString(runningText, COL);   // бегущая строка
+    #endif
   }
 }
 
