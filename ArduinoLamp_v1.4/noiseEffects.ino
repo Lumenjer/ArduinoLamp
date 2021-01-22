@@ -20,7 +20,7 @@ uint8_t noise[HEIGHT][HEIGHT];
 void Noise3D()
 {
   if (loadingFlag)
-  { setCurrentPalette(map(palette,1,255,1,20));
+  { setCurrentPalette(palette);
     loadingFlag = false;
     scale = map(modes[currentMode].Scale,1,255,1,100);
     speed = map(modes[currentMode].Scale,1,255,1,155);
