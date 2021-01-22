@@ -20,13 +20,13 @@ uint8_t noise[HEIGHT][HEIGHT];
 void Noise3D()
 {
   if (loadingFlag)
-  { setCurrentPalette(map(palette,1,255,1,20));
+  { setCurrentPalette(map(palette,1,255,1,10));
     loadingFlag = false;
-    scale = map(Scale,1,10,1,100);
-    speed = map(Scale,1,10,1,155);
+    scale = map(Scale,1,255,1,100);
+    speed = map(Scale,1,255,1,155);
     currentPalette = *curPalette;
   }
-  if (palette<=255)
+  if (palette<=9)
   fillNoiseLED();
   else{
     fillnoise8();
