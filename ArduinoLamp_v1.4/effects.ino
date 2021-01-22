@@ -20,6 +20,7 @@ uint8_t deltaHue, deltaHue2; // ещё пара таких же, когда ну
 uint8_t deltaValue; // просто повторно используемая переменная
 byte hue, hue2;
 CRGB _pulse_color;
+CRGBPalette16 currentPalette(PartyColors_p);
 void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
 {
   blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
@@ -82,7 +83,7 @@ void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // фейдер
 // ----------------------------- РАДУГА 2Д --------------------------  
 // ________________ РАДУГА ВЕРТИКАЛЬНАЯ/ГОРИЗОНТАЛЬНАЯ ______________
 void rainbowHorVertRoutine(bool isVertical)
-{ hue + 4;
+{ hue += 4;
   for (uint8_t i = 0U; i < (isVertical ? WIDTH : HEIGHT); i++)
   {
     for (uint8_t j = 0U; j < (isVertical ? HEIGHT : WIDTH); j++)
@@ -100,7 +101,7 @@ void RainbowRoutine()
   } else if (modes[currentMode].Scale > 170) {
     rainbowHorVertRoutine(true);
   } else {
-    hue + 8;
+    hue += 8;
     for (uint8_t i = 0U; i < WIDTH; i++)
     {
       for (uint8_t j = 0U; j < HEIGHT; j++)
@@ -140,7 +141,7 @@ void RainRoutine()
       {
       if (modes[currentMode].Scale==1) drawPixelXY(x, HEIGHT - 1U, CHSV(random(0, 9) * 28, 255U, 255U)); // Радужный дождь
       else
-      if (modes[currentMode].Scale>=255) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
+      if (modes[currentMode].Scale==255) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
       else
       drawPixelXY(x, HEIGHT - 1U, CHSV(modes[currentMode].Scale+random(0, 16),255,255)); // Цветной дождь
       }
@@ -490,7 +491,7 @@ void drawFrame(int pcnt) {
           - pgm_read_byte(&(valueMask[y][newX]));
 
         CRGB color = CHSV(
-                       modes[1].Scale * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
+                       modes[currentMode].Scale * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
                        255, // S
                        (uint8_t)max(0, nextv) // V
                      );
@@ -515,7 +516,7 @@ void drawFrame(int pcnt) {
     uint8_t newX = x;
     if (x > 15) newX = x - 15;
     CRGB color = CHSV(
-                   modes[1].Scale * 2.5 + pgm_read_byte(&(hueMask[0][newX])), // H
+                   modes[currentMode].Scale * 2.5 + pgm_read_byte(&(hueMask[0][newX])), // H
                    255,           // S
                    (uint8_t)(((100.0 - pcnt) * matrixValue[0][newX] + pcnt * line[newX]) / 100.0) // V
                  );
@@ -537,6 +538,7 @@ void FireRoutine() {
     step = map(255U - deltaValue, 87U, 247U, 4U, 32U); // вероятность смещения искорки по оси ИКС
     for (uint8_t j = 0; j < HEIGHT; j++) {
       shiftHue[j] = (HEIGHT - 1 - j) * 255 / (HEIGHT - 1); // init colorfade table
+    currentPalette = CRGBPalette16(CRGB::Black, CHSV(modes[currentMode].Scale, 255U, 255U) , CHSV(modes[currentMode].Scale+50, 255U, 255U) , CHSV(modes[currentMode].Scale+50, 100, 255U));
     }
 
     for (uint8_t i = 0; i < (WIDTH / 8U); i++) {
@@ -551,7 +553,7 @@ void FireRoutine() {
       else if (modes[currentMode].Scale == 1)
         leds[XY(i, (HEIGHT - 1) - j)] = ColorFromPalette(HeatColors_p, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
       else
-      leds[XY(i, HEIGHT - 1U - j)] = ColorFromPalette(CRGBPalette16(CRGB::Black, CHSV(modes[currentMode].Scale, 255U, 255U) , CHSV(modes[currentMode].Scale+50, 255U, 255U) , CHSV(modes[currentMode].Scale+50, 100, 255U)), qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
+      leds[XY(i, HEIGHT - 1U - j)] = ColorFromPalette(currentPalette, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
     }
   }
 

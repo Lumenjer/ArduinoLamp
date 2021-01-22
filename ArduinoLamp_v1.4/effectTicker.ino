@@ -47,7 +47,7 @@ void effectsTick() {
             if (ind > x) drawPixelXY(x, IND_POS, CHSV(150, 255, 255));
             else drawPixelXY(x, IND_POS,  0);
           }
-          break;
+          break;}
           #else
           switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
@@ -70,10 +70,9 @@ void effectsTick() {
             if (ind > y) drawPixelXY(IND_POS, y, CHSV(150, 255, 255));
             else drawPixelXY(IND_POS, y,  0);
           }
-          break;
+          break;}
           #endif
 #endif
-      }
 #if (CONTROL_TYPE == 0 || CONTROL_TYPE == 5)
       if (!IRLremote.receiving())    // если на ИК приёмник не приходит сигнал (без этого НЕ РАБОТАЕТ!)
         FastLED.show();

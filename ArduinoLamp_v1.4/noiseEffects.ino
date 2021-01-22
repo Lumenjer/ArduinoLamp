@@ -1,12 +1,11 @@
-// ---------------- ШУМ 3D ---------------------
-// =============== НАСТРОЙКИ =============
+// ************* НАСТРОЙКИ *************
 // The 16 bit version of our coordinates
 static uint16_t x;
 static uint16_t y;
 static uint16_t z;
 
-uint16_t speed = 20;                                        // speed is set dynamically once we've started up
-uint16_t scale = 30;                                        // scale is set dynamically once we've started up
+uint8_t speed = 20;                                        // speed is set dynamically once we've started up
+uint8_t scale = 30;                                        // scale is set dynamically once we've started up
 
 // This is the array that we keep our computed noise values in
 #define MAX_DIMENSION (max(WIDTH, HEIGHT))
@@ -17,19 +16,17 @@ uint8_t noise[HEIGHT][HEIGHT];
 #endif
 
 
-CRGBPalette16 currentPalette(PartyColors_p);
-
-
+//------------Шум 3Д------------------
 void Noise3D()
 {
   if (loadingFlag)
-  { setCurrentPalette(palette);
+  { setCurrentPalette(map(palette,1,255,1,20));
     loadingFlag = false;
+    scale = map(modes[currentMode].Scale,1,10,1,100);
+    speed = map(modes[currentMode].Scale,1,10,1,155);
     currentPalette = *curPalette;
-    scale = modes[currentMode].Scale;
-    speed = modes[currentMode].Speed;
   }
-  if (palette<=9)
+  if (palette<=255)
   fillNoiseLED();
   else{
     fillnoise8();
@@ -37,13 +34,13 @@ void Noise3D()
   {
     for (uint8_t j = 0; j < HEIGHT; j++)
     {
-      CRGB thisColor = CHSV(noise[j][i], 255, noise[i][j]);
       drawPixelXY(i, j, CHSV(noise[j][i], 255, noise[i][j]));
     }
   }
+  hue += 1;
 }}
 
-// --------------- СЛУЖЕБНЫЕ --------------
+// ************* СЛУЖЕБНЫЕ *************
 void fillNoiseLED()
 {
   uint8_t dataSmoothing = 0;
