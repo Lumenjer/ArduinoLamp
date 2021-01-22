@@ -22,8 +22,8 @@ void Noise3D()
   if (loadingFlag)
   { setCurrentPalette(map(palette,1,255,1,20));
     loadingFlag = false;
-    scale = map(modes[currentMode].Scale,1,10,1,100);
-    speed = map(modes[currentMode].Scale,1,10,1,155);
+    scale = map(modes[currentMode].Scale,1,255,1,100);
+    speed = map(modes[currentMode].Scale,1,255,1,155);
     currentPalette = *curPalette;
   }
   if (palette<=9)
