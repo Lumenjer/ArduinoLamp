@@ -26,7 +26,7 @@ void Noise3D()
     speed = map(modes[currentMode].Scale,1,10,1,155);
     currentPalette = *curPalette;
   }
-  if (palette<=255)
+  if (palette<=9)
   fillNoiseLED();
   else{
     fillnoise8();
