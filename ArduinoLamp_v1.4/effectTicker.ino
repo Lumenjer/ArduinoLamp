@@ -1,6 +1,6 @@
 void effectsTick() {
   {
-    if (!BTcontrol && !runningFlag && ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 8) ? 256 - Speed : 50) ) {
+    if (!parseStarted && !runningFlag && ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 8) ? 256 - Speed : 50) ) {
       effTimer = millis(); switch (currentMode) {
         //|номер   |название функции эффекта     |тоже надо|
         case 0 : sparklesRoutine();             break;

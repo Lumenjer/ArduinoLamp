@@ -644,7 +644,7 @@ void LavaLampRoutine() {
 void LLandRoutine(){
   if (loadingFlag) {
     loadingFlag = false;
-    setCurrentPalette(palette);
+    setCurrentPalette(map(palette,1,255,1,10));
     //speedfactor = fmap(modes[currentMode].Speed, 1., 255., 20., 1.) / 16.;
     deltaValue = 10U * ((Scale - 1U) % 11U + 1U);// значения от 1 до 11 
     // значения от 0 до 10 = ((modes[currentMode].Scale - 1U) % 11U)

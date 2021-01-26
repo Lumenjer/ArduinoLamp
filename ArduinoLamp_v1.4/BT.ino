@@ -25,7 +25,7 @@ void bluetoothRoutine() {
 
 byte parse_index;
 String string_convert = "";
-enum modes {NORMAL, COLOR, TEXT} parseMode;
+enum modes {NORMAL, TEXT} parseMode;
 
 
 // ********************* ПРИНИМАЕМ ДАННЫЕ **********************
@@ -111,9 +111,8 @@ void parsing() {
   }
 
   // ****************** ПАРСИНГ *****************
-  if (Serial.available() > 0) {
+if (Serial.available() > 0) {
     char incomingByte;
-    #ifdef TEXTo
     if (parseMode == TEXT) {     // если нужно принять строку
       runningText = Serial.readString();  // принимаем всю
       incomingByte = ending;              // сразу завершаем парс
@@ -121,27 +120,19 @@ void parsing() {
     } else {
       incomingByte = Serial.read();        // обязательно ЧИТАЕМ входящий символ
     }
-    #else
-    incomingByte = Serial.read();
-    #endif
     if (parseStarted) {                         // если приняли начальный символ (парсинг разрешён)
       if (incomingByte != divider && incomingByte != ending) {   // если это не пробел И не конец
         string_convert += incomingByte;       // складываем в строку
       } else {                                // если это пробел или ; конец пакета
         if (parse_index == 0) {
           byte thisMode = string_convert.toInt();
-          if (thisMode == 0 || thisMode == 5) parseMode = COLOR;    // передача цвета (в отдельную переменную)
-          else if (thisMode == 6) parseMode = TEXT;
+          if (thisMode == 6) parseMode = TEXT;
           else parseMode = NORMAL;
           //if (thisMode != 7 || thisMode != 0) runningFlag = false;
         }
-        
-
         if (parse_index == 1) {       // для второго (с нуля) символа в посылке
           if (parseMode == NORMAL) intData[parse_index] = string_convert.toInt();             // преобразуем строку в int и кладём в массив}
-          //if (parseMode == COLOR) globalColor = strtol(&string_convert[0], NULL, 16);     // преобразуем строку HEX в цифру
-          //if (parseMode == COLOR) globalColor = (uint32_t)HEXtoInt(string_convert);     // преобразуем строку HEX в цифру
-        } else {
+       } else {
           intData[parse_index] = string_convert.toInt();  // преобразуем строку в int и кладём в массив
         }
         string_convert = "";                  // очищаем строку

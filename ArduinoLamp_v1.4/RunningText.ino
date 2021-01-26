@@ -9,7 +9,7 @@ void fillString(String text, uint32_t color) {
     fullTextFlag = false;
   }
 
-  if (!BTcontrol && millis() - effTimer >= (256-Speed)) {
+  if (millis() - effTimer >= (256-Speed)) {
     effTimer = millis();
     FastLED.clear();
     byte i = 0, j = 0;

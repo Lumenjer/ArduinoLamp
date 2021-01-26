@@ -29,7 +29,6 @@ boolean ONflag = true;
 byte palette; //палитры/Другой Масштаб
 boolean fullTextFlag = false;
 uint32_t DemTimer = 0UL;                      // тут будет храниться время следующего переключения эффекта
-boolean BTcontrol = false;
 uint32_t effTimer;
 // ---------------- ЗАПУСК --------------------
 void setup() {
@@ -53,6 +52,9 @@ FastLED.setBrightness(Brightness);
 
 void loop() {
   effectsTick();
+  #if (USE_BUTTON == 1)
+  buttonTick();
+  #endif
   demoTick();
   bluetoothRoutine();        
 }
