@@ -16,7 +16,7 @@
 #define IR_SCALE_DOWN 0x2F4CB4B5      // код пульта для понижения Масштаба
 #define IR_SCALE_UP 0xD7F391B5        // код пульта для повышения Масштаба
 #define IR_PALETTE 0x21631BB5         // код пульта для Палитр
-#define IR_1 0x1E4E56B5               // код пульта 
+#define IR_ERASE 0x1E4E56B5           // код пульта для установки настроек по умолчанию
 // -----------------------
 #include <GyverButtonOld.h>
 #include <IRLremote.h>
@@ -31,8 +31,8 @@ CHashIR IRLremote;
 uint32_t IRdata;
 boolean ir_flag = false;
 
-void controlTick() { 
-      if (IRLremote.available())  {
+void controlTick() {
+  if (IRLremote.available())  {
     auto data = IRLremote.read();
     IRdata = data.command;
     ir_flag = true;
@@ -41,7 +41,7 @@ void controlTick() {
     switch (IRdata) {
       // режимы
       case IR_ON:
-      if (ONflag) {
+        if (ONflag) {
           ONflag = false;
           changePower();
         } else {
@@ -51,7 +51,7 @@ void controlTick() {
         break;
       case IR_NEXT:
         if (++currentMode >= MODE_AMOUNT) currentMode = 0;
-        FastLED.setBrightness(modes[currentMode].Brightness);
+        FastLED.setBrightness(Brightness[currentMode]);
         loadingFlag = true;
         //settChanged = true;
         memset8( leds, 0, NUM_LEDS * 3);
@@ -59,7 +59,7 @@ void controlTick() {
         break;
       case IR_PREVIOUS:
         if (--currentMode < 0) currentMode = MODE_AMOUNT - 1;
-        FastLED.setBrightness(modes[currentMode].Brightness);
+        FastLED.setBrightness(Brightness[currentMode]);
         loadingFlag = true;
         //settChanged = true;
         memset8( leds, 0, NUM_LEDS * 3);
@@ -67,7 +67,7 @@ void controlTick() {
         break;
       case IR_DEMO:
         isDemo = !isDemo;
-        
+
         break;
       case IR_PALETTE:
         if (palette >= 10) palette = 0;
@@ -77,10 +77,18 @@ void controlTick() {
       case IR_SAVE:   if (EEPROM.read(0) != 102) EEPROM.write(0, 102);
         if (EEPROM.read(1) != currentMode) EEPROM.write(1, currentMode);  // запоминаем текущий эфект
         for (byte x = 0; x < MODE_AMOUNT; x++) {                          // сохраняем настройки всех режимов
-          if (EEPROM.read(x * 3 + 11) != modes[x].Brightness) EEPROM.write(x * 3 + 11, modes[x].Brightness);
-          if (EEPROM.read(x * 3 + 12) != modes[x].Speed) EEPROM.write(x * 3 + 12, modes[x].Speed);
-          if (EEPROM.read(x * 3 + 13) != modes[x].Scale) EEPROM.write(x * 3 + 13, modes[x].Scale);
+          if (EEPROM.read(x * 3 + 11) != Brightness[x]) EEPROM.write(x * 3 + 11, Brightness[x]);
+          if (EEPROM.read(x * 3 + 12) != Speed[x]) EEPROM.write(x * 3 + 12, Speed[x]);
+          if (EEPROM.read(x * 3 + 13) != Scale[x]) EEPROM.write(x * 3 + 13, Scale[x]);
         }
+        // индикация сохранения
+        ONflag = false;
+        changePower();
+        delay(200);
+        ONflag = true;
+        changePower();
+        break;
+      case IR_ERASE:   if (EEPROM.read(0) == 102) EEPROM.write(0, 0);
         // индикация сохранения
         ONflag = false;
         changePower();
@@ -108,31 +116,32 @@ void controlTick() {
         break;
     }
     ir_flag = false;
-    
-    if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
-      switch (numHold) {
-        case 1:
-          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
-          break;
-        case 2:
-          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
-          break;
 
-        case 3:
-          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
-          break;
-      }
+    if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
+    switch (numHold) {
+      case 1:
+        Brightness[currentMode] = constrain(Brightness[currentMode] + (Brightness[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
+        break;
+      case 2:
+        Speed[currentMode] = constrain(Speed[currentMode] + (Speed[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+        break;
+
+      case 3:
+        Scale[currentMode] = constrain(Scale[currentMode] + (Scale[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+        break;
     }
-  
-  
+  }
+
+
   touch.tick();
   if (!ONflag) {
-  if (touch.isSingle()) {
-    {
+    if (touch.isSingle()) {
+      {
         ONflag = true;
         changePower();
         isDemo = false;
-      }}
+      }
+    }
 
     if (touch.isDouble()) {
       ONflag = true;
@@ -142,12 +151,12 @@ void controlTick() {
   }
   if (ONflag) {                 // если включено
     if (touch.isSingle()) {
-        ONflag = false;
-        changePower();
+      ONflag = false;
+      changePower();
     }
     if (touch.isDouble()) {
       if (++currentMode >= MODE_AMOUNT) currentMode = 0;
-      FastLED.setBrightness(modes[currentMode].Brightness);
+      FastLED.setBrightness(Brightness[currentMode]);
       loadingFlag = true;
       //settChanged = true;
       memset8( leds, 0, NUM_LEDS * 3);
@@ -155,7 +164,7 @@ void controlTick() {
     }
     if (touch.isTriple()) {
       if (--currentMode < 0) currentMode = MODE_AMOUNT - 1;
-      FastLED.setBrightness(modes[currentMode].Brightness);
+      FastLED.setBrightness(Brightness[currentMode]);
       loadingFlag = true;
       //settChanged = true;
       memset8( leds, 0, NUM_LEDS * 3);
@@ -166,9 +175,9 @@ void controlTick() {
         if (EEPROM.read(0) != 102) EEPROM.write(0, 102);
         if (EEPROM.read(1) != currentMode) EEPROM.write(1, currentMode);  // запоминаем текущий эфект
         for (byte x = 0; x < MODE_AMOUNT; x++) {                          // сохраняем настройки всех режимов
-          if (EEPROM.read(x * 3 + 11) != modes[x].Brightness) EEPROM.write(x * 3 + 11, modes[x].Brightness);
-          if (EEPROM.read(x * 3 + 12) != modes[x].Speed) EEPROM.write(x * 3 + 12, modes[x].Speed);
-          if (EEPROM.read(x * 3 + 13) != modes[x].Scale) EEPROM.write(x * 3 + 13, modes[x].Scale);
+          if (EEPROM.read(x * 3 + 11) != Brightness[x]) EEPROM.write(x * 3 + 11, Brightness[x]);
+          if (EEPROM.read(x * 3 + 12) != Speed[x]) EEPROM.write(x * 3 + 12, Speed[x]);
+          if (EEPROM.read(x * 3 + 13) != Scale[x]) EEPROM.write(x * 3 + 13, Scale[x]);
         }
         // индикация сохранения
         ONflag = false;
@@ -204,14 +213,14 @@ void controlTick() {
       if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
       switch (numHold) {
         case 1:
-          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
+          Brightness[currentMode] = constrain(Brightness[currentMode] + (Brightness[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
           break;
         case 2:
-          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          Speed[currentMode] = constrain(Speed[currentMode] + (Speed[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
           break;
 
         case 3:
-          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          Scale[currentMode] = constrain(Scale[currentMode] + (Scale[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
           break;
       }
     }
@@ -219,12 +228,12 @@ void controlTick() {
       numHold = 0;
       numHold_Timer = millis();
     }
-    FastLED.setBrightness(modes[currentMode].Brightness);
+    FastLED.setBrightness(Brightness[currentMode]);
   }
 }
 // ------- ПУЛЬТ---------
-void SetUP(){  
+void SetUP() {
   touch.setStepTimeout(100);
   touch.setClickTimeout(500);
   IRLremote.begin(CONTROL_PIN);
-  }
+}

@@ -33,11 +33,10 @@ bool isDemo = false;           // true - Демо включается при з
 #define IND_POS 4              // Позиция индикатора
 //-------------------- ЭФФЕКТЫ --------------
 #define MODE_AMOUNT 14         // Кол-во эффектов
-struct {
-  byte Brightness = 10;
-  byte Speed = 30;
-  byte Scale = 10;
-} modes[MODE_AMOUNT];          // Настройки эффектов по умолчанию
+byte Brightness[MODE_AMOUNT]{16,8,9,23,11,9,9,10,27,15,22,21,7};
+byte Speed[MODE_AMOUNT]{142,196,217,203,19,207,180,252,186,225,180,198,240};
+byte Scale[MODE_AMOUNT]{63,56,1,150,59,26,99,32,23,1,93,18};
+
 byte currentMode = 10;         // Эффект по умолчанию
 //-------------------- ПРОЧЕЕ ---------------
 //#define DEBUG                // Дебаг(Нужен, расскоментируйте)(еще б написал)

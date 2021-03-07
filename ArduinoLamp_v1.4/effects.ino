@@ -53,7 +53,7 @@ byte lightersBright[LIGHTERS_AM];
 // ---------------------------- КОНФЕТТИ ------------------------------
 void sparklesRoutine()
 {
-  for (uint8_t i = 0; i < modes[currentMode].Scale; i++)
+  for (uint8_t i = 0; i < Scale[currentMode]; i++)
   {
     uint8_t x = random(0U, WIDTH);
     uint8_t y = random(0U, HEIGHT);
@@ -88,7 +88,7 @@ void rainbowHorVertRoutine(bool isVertical)
   {
     for (uint8_t j = 0U; j < (isVertical ? HEIGHT : WIDTH); j++)
     {
-      drawPixelXY((isVertical ? i : j), (isVertical ? j : i), CHSV((uint8_t)(hue + i * modes[currentMode].Scale % 170), 255, 255));
+      drawPixelXY((isVertical ? i : j), (isVertical ? j : i), CHSV((uint8_t)(hue + i * Scale[currentMode] % 170), 255, 255));
     }
   }
 }
@@ -96,9 +96,9 @@ void rainbowHorVertRoutine(bool isVertical)
 // ________________________ РАДУГА ДИАГОНАЛЬНАЯ _______________________
 void RainbowRoutine()
 {
-  if (modes[currentMode].Scale < 85) {
+  if (Scale[currentMode] < 85) {
     rainbowHorVertRoutine(false);
-  } else if (modes[currentMode].Scale > 170) {
+  } else if (Scale[currentMode] > 170) {
     rainbowHorVertRoutine(true);
   } else {
     hue += 8;
@@ -106,7 +106,7 @@ void RainbowRoutine()
     {
       for (uint8_t j = 0U; j < HEIGHT; j++)
       {
-        float twirlFactor = fmap((float)modes[currentMode].Scale, 85, 170, 8.3, 24);      // на сколько оборотов будет закручена матрица, [0..3]
+        float twirlFactor = fmap((float)Scale[currentMode], 85, 170, 8.3, 24);      // на сколько оборотов будет закручена матрица, [0..3]
         drawPixelXY(i, j, CHSV((uint8_t)(hue + ((float)WIDTH / HEIGHT * i + j * twirlFactor) * ((float)255 / maxDim)), 255, 255));
       }
     }
@@ -115,7 +115,7 @@ void RainbowRoutine()
 
 // --------------------------------- ЦВЕТА -----------------------------
 void colorsRoutine() {
-  hue += modes[currentMode].Scale;
+  hue += Scale[currentMode];
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(hue, 255, 255);
   }
@@ -124,7 +124,7 @@ void colorsRoutine() {
 // --------------------------------- ЦВЕТ --------------------------------
 void colorRoutine() {
   for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CHSV(modes[currentMode].Scale, modes[currentMode].Speed, 255);
+    leds[i] = CHSV(Scale[currentMode], Speed[currentMode], 255);
   }
 }
 // --------------------------------- ДОЖДЬ -------------------------------
@@ -139,11 +139,11 @@ void RainRoutine()
     {
      if (random8(0, 50) == 0U)
       {
-      if (modes[currentMode].Scale==1) drawPixelXY(x, HEIGHT - 1U, CHSV(random(0, 9) * 28, 255U, 255U)); // Радужный дождь
+      if (Scale[currentMode]==1) drawPixelXY(x, HEIGHT - 1U, CHSV(random(0, 9) * 28, 255U, 255U)); // Радужный дождь
       else
-      if (modes[currentMode].Scale==255) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
+      if (Scale[currentMode]==255) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
       else
-      drawPixelXY(x, HEIGHT - 1U, CHSV(modes[currentMode].Scale+random(0, 16),255,255)); // Цветной дождь
+      drawPixelXY(x, HEIGHT - 1U, CHSV(Scale[currentMode]+random(0, 16),255,255)); // Цветной дождь
       }
   }
     else
@@ -172,8 +172,8 @@ void matrixRoutine()
       uint32_t upperColor = getPixColorXY(x, y + 1U);                                        // берём цвет пикселя над нашим
       if (upperColor >= 0x900000 && random(7 * HEIGHT) != 0U)                  // если выше нас максимальная яркость, игнорим этот факт с некой вероятностью или опускаем цепочку ниже
         drawPixelXY(x, y, upperColor);
-      else if (thisColor == 0U && random((255 - modes[currentMode].Scale) * HEIGHT) == 0U)  // если наш пиксель ещё не горит, иногда зажигаем новые цепочки
-        //else if (thisColor == 0U && random((100 - modes[currentMode].Scale) * HEIGHT*3) == 0U)  // для длинных хвостов
+      else if (thisColor == 0U && random((255 - Scale[currentMode]) * HEIGHT) == 0U)  // если наш пиксель ещё не горит, иногда зажигаем новые цепочки
+        //else if (thisColor == 0U && random((100 - Scale[currentMode]) * HEIGHT*3) == 0U)  // для длинных хвостов
         drawPixelXY(x, y, 0x9bf800);
       else if (thisColor <= 0x050800)                                                        // если наш пиксель почти погас, стараемся сделать затухание медленней
       {
@@ -192,7 +192,7 @@ void matrixRoutine()
     uint32_t thisColor = getPixColorXY(x, HEIGHT - 1U);
     if (thisColor == 0U)                                                                     // если наш верхний пиксель не горит, заполняем его с вероятностью .Scale
     {
-      if (random(255 - modes[currentMode].Scale) == 0U)
+      if (random(255 - Scale[currentMode]) == 0U)
         drawPixelXY(x, HEIGHT - 1U, 0x9bf800);
     }
     else if (thisColor <= 0x050800)                                                          // если наш верхний пиксель почти погас, стараемся сделать затухание медленней
@@ -224,14 +224,14 @@ void whiteLampRoutine()
     uint8_t centerY =  (uint8_t)round(HEIGHT / 2.0F) - 1U;// max((uint8_t)round(HEIGHT / 2.0F) - 1, 0); нахрена тут максимум было вычислять? для ленты?!
     uint8_t bottomOffset = (uint8_t)(!(HEIGHT & 0x01));// && (HEIGHT > 1)); и высота больше единицы. супер!                     // если высота матрицы чётная, линий с максимальной яркостью две, а линии с минимальной яркостью снизу будут смещены на один ряд
 
-    uint8_t fullRows =  centerY / 100.0 * modes[currentMode].Scale;
-    uint8_t iPol = (centerY / 100.0 * modes[currentMode].Scale - fullRows) * 255;
+    uint8_t fullRows =  centerY / 100.0 * Scale[currentMode];
+    uint8_t iPol = (centerY / 100.0 * Scale[currentMode] - fullRows) * 255;
 
     for (int16_t y = centerY; y >= 0; y--)
     {
       CRGB color = CHSV(
                      45U,                                                                              // определяем тон
-                     map(modes[currentMode].Speed, 0U, 255U, 0U, 170U),                                // определяем насыщенность
+                     map(Speed[currentMode], 0U, 255U, 0U, 170U),                                // определяем насыщенность
                      y > (centerY - fullRows - 1)                                                      // определяем яркость
                      ? 255U                                                                            // для центральных горизонтальных полос
                      : iPol * (y > centerY - fullRows - 2));  // для остальных горизонтальных полос яркость равна либо 255, либо 0 в зависимости от масштаба
@@ -253,14 +253,14 @@ void stormRoutine() {
         && (random(0, SNOW_DENSE) == 0)
         && getPixColorXY(0, i + 1) == 0
         && getPixColorXY(0, i - 1) == 0)
-      leds[getPixelNumber(0, i)] = CHSV(random(0, 200), modes[currentMode].Scale, 255);
+      leds[getPixelNumber(0, i)] = CHSV(random(0, 200), Scale[currentMode], 255);
   }
   for (byte i = 0; i < WIDTH / 2; i++) {
     if (getPixColorXY(i, HEIGHT - 1) == 0
         && (random(0, SNOW_DENSE) == 0)
         && getPixColorXY(i + 1, HEIGHT - 1) == 0
         && getPixColorXY(i - 1, HEIGHT - 1) == 0)
-      leds[getPixelNumber(i, HEIGHT - 1)] = CHSV(random(0, 200), modes[currentMode].Scale, 255);
+      leds[getPixelNumber(i, HEIGHT - 1)] = CHSV(random(0, 200), Scale[currentMode], 255);
   }
 
   // сдвигаем по диагонали
@@ -294,19 +294,19 @@ void ballRoutine()
       lightersPos[i][0] = WIDTH / 2 * 10;
       lightersSpeed[i][0] = random(4, 10);
     }
-    deltaValue = map(modes[currentMode].Scale, 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
+    deltaValue = map(Scale[currentMode], 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
     lightersColor[0] = random(0, 9) * 28;
     //    _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
   }
 
-  //  if (!(modes[currentMode].Scale & 0x01))
+  //  if (!(Scale[currentMode] & 0x01))
   //  {
-  //    hue += (modes[currentMode].Scale - 1U) % 11U * 8U + 1U;
+  //    hue += (Scale[currentMode] - 1U) % 11U * 8U + 1U;
 
   //    ballColor = CHSV(hue, 255U, 255U);
   //  }
 
-  if ((modes[currentMode].Scale & 0x01))
+  if ((Scale[currentMode] & 0x01))
     for (uint8_t i = 0U; i < deltaValue; i++)
       for (uint8_t j = 0U; j < deltaValue; j++)
         leds[XY(lightersPos[0][0] / 10 + i, lightersPos[1][0] / 10 + j)] = _pulse_color;
@@ -318,7 +318,7 @@ void ballRoutine()
     {
       lightersPos[i][0] = 0;
       lightersSpeed[i][0] = -lightersSpeed[i][0];
-      if (RANDOM_COLOR) lightersColor[0] = random(0, 9) * 28; // if (RANDOM_COLOR && (modes[currentMode].Scale & 0x01))
+      if (RANDOM_COLOR) lightersColor[0] = random(0, 9) * 28; // if (RANDOM_COLOR && (Scale[currentMode] & 0x01))
       //vectorB[i] += random(0, 6) - 3;
     }
   }
@@ -337,9 +337,9 @@ void ballRoutine()
     //vectorB[1] += random(0, 6) - 3;
   }
 
-      //if (modes[currentMode].Scale & 0x01)
+      //if (Scale[currentMode] & 0x01)
       //dimAll(135U);
-      //dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);
+      //dimAll(255U - (Scale[currentMode] - 1U) % 11U * 24U);
     else
   FastLED.clear();
 
@@ -366,14 +366,14 @@ void ballsRoutine()
       lightersSpeed[1][j] = random(4, 15) * sign;
       //ballColors[j] = CHSV(random(0, 9) * 28, 255U, 255U);
       // цвет зависит от масштаба
-      lightersColor[j] = (modes[currentMode].Scale * (j + 1)) % 256U;
+      lightersColor[j] = (Scale[currentMode] * (j + 1)) % 256U;
     }
   }
 
   dimAll(256U - TRACK_STEP);
 
   // движение шариков
-  for (uint8_t j = 0U; j < map(modes[currentMode].Scale, 1, 255, 1, (WIDTH + HEIGHT) / 4); j++)
+  for (uint8_t j = 0U; j < map(Scale[currentMode], 1, 255, 1, (WIDTH + HEIGHT) / 4); j++)
   {
     // движение шариков
     for (uint8_t i = 0U; i < 2U; i++)
@@ -491,7 +491,7 @@ void drawFrame(int pcnt) {
           - pgm_read_byte(&(valueMask[y][newX]));
 
         CRGB color = CHSV(
-                       modes[currentMode].Scale * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
+                       Scale[currentMode] * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
                        255, // S
                        (uint8_t)max(0, nextv) // V
                      );
@@ -516,7 +516,7 @@ void drawFrame(int pcnt) {
     uint8_t newX = x;
     if (x > 15) newX = x - 15;
     CRGB color = CHSV(
-                   modes[currentMode].Scale * 2.5 + pgm_read_byte(&(hueMask[0][newX])), // H
+                   Scale[currentMode] * 2.5 + pgm_read_byte(&(hueMask[0][newX])), // H
                    255,           // S
                    (uint8_t)(((100.0 - pcnt) * matrixValue[0][newX] + pcnt * line[newX]) / 100.0) // V
                  );
@@ -538,7 +538,7 @@ void FireRoutine() {
     step = map(255U - deltaValue, 87U, 247U, 4U, 32U); // вероятность смещения искорки по оси ИКС
     for (uint8_t j = 0; j < HEIGHT; j++) {
       shiftHue[j] = (HEIGHT - 1 - j) * 255 / (HEIGHT - 1); // init colorfade table
-    currentPalette = CRGBPalette16(CRGB::Black, CHSV(modes[currentMode].Scale, 255U, 255U) , CHSV(modes[currentMode].Scale+50, 255U, 255U) , CHSV(modes[currentMode].Scale+50, 100, 255U));
+    currentPalette = CRGBPalette16(CRGB::Black, CHSV(Scale[currentMode], 255U, 255U) , CHSV(Scale[currentMode]+50, 255U, 255U) , CHSV(Scale[currentMode]+50, 100, 255U));
     }
 
     for (uint8_t i = 0; i < (WIDTH / 8U); i++) {
@@ -548,9 +548,9 @@ void FireRoutine() {
   }
   for (uint8_t i = 0; i < WIDTH; i++) {
     for (uint8_t j = 0; j < HEIGHT; j++) {
-     if (modes[currentMode].Scale == 255)
+     if (Scale[currentMode] == 255)
         leds[XY(i, (HEIGHT - 1) - j)] = ColorFromPalette(WaterfallColors_p, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
-      else if (modes[currentMode].Scale == 1)
+      else if (Scale[currentMode] == 1)
         leds[XY(i, (HEIGHT - 1) - j)] = ColorFromPalette(HeatColors_p, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
       else
       leds[XY(i, HEIGHT - 1U - j)] = ColorFromPalette(currentPalette, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
@@ -601,7 +601,7 @@ void LavaLampRoutine() {
   if (loadingFlag)
   { for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
       lightersSpeed[0][i] = random(1, 3);
-      ball[i][1] = (float)random8(5, 11) / (modes[currentMode].Speed) / 4.0;
+      ball[i][1] = (float)random8(5, 11) / (Speed[currentMode]) / 4.0;
       ball[i][0] = 0;
       lightersSpeed[1][i] = i * 2U + random8(2);}
     loadingFlag = false;
@@ -610,11 +610,11 @@ void LavaLampRoutine() {
   blurScreen(20);
   for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
     // Draw 'ball'
-    if (modes[currentMode].Scale == 1){
+    if (Scale[currentMode] == 1){
       drawBlob(i,CHSV(hue,255,255));
       hue++;}
     else
-      drawBlob(i, CHSV(modes[currentMode].Scale, 255, 255));
+      drawBlob(i, CHSV(Scale[currentMode], 255, 255));
 
     if (ball[i][0] + lightersSpeed[0][i] >= HEIGHT - 1)
       ball[i][0] += (ball[i][1] * ((HEIGHT - 1 - ball[i][0]) / lightersSpeed[0][i] + 0.005));
@@ -623,11 +623,11 @@ void LavaLampRoutine() {
     else
       ball[i][0] += ball[i][1];
     if (ball[i][0] < 0.01) {                  // почему-то при нуле появляется мерцание (один кадр, еле заметно)
-      ball[i][1] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
+      ball[i][1] = (float)random8(5, 11) / (257U - Speed[currentMode]) / 4.0;
       ball[i][0] = 0.01;
     }
     else if (ball[i][0] > HEIGHT - 1.01) {    // тоже на всякий пожарный
-      ball[i][1] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0;
+      ball[i][1] = (float)random8(5, 11) / (257U - Speed[currentMode]) / 4.0;
       ball[i][1] = -ball[i][1];
       ball[i][0] = HEIGHT - 1.01;
     }
@@ -645,9 +645,9 @@ void LLandRoutine(){
   if (loadingFlag) {
     loadingFlag = false;
     setCurrentPalette(palette);
-    //speedfactor = fmap(modes[currentMode].Speed, 1., 255., 20., 1.) / 16.;
-    deltaValue = 10U * ((modes[currentMode].Scale - 1U) % 11U + 1U);// значения от 1 до 11 
-    // значения от 0 до 10 = ((modes[currentMode].Scale - 1U) % 11U)
+    //speedfactor = fmap(Speed[currentMode], 1., 255., 20., 1.) / 16.;
+    deltaValue = 10U * ((Scale[currentMode] - 1U) % 11U + 1U);// значения от 1 до 11 
+    // значения от 0 до 10 = ((Scale[currentMode] - 1U) % 11U)
 
   }
   hue2 += 32U;

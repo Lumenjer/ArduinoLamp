@@ -34,7 +34,7 @@ void controlTick() {
     }
     if (touch.isDouble()) {
       if (++currentMode >= MODE_AMOUNT) currentMode = 0;
-      FastLED.setBrightness(modes[currentMode].Brightness);
+      FastLED.setBrightness(Brightness[currentMode]);
       loadingFlag = true;
       //settChanged = true;
       memset8( leds, 0, NUM_LEDS * 3);
@@ -42,7 +42,7 @@ void controlTick() {
     }
     if (touch.isTriple()) {
       if (--currentMode < 0) currentMode = MODE_AMOUNT - 1;
-      FastLED.setBrightness(modes[currentMode].Brightness);
+      FastLED.setBrightness(Brightness[currentMode]);
       loadingFlag = true;
       //settChanged = true;
       memset8( leds, 0, NUM_LEDS * 3);
@@ -53,9 +53,9 @@ void controlTick() {
         if (EEPROM.read(0) != 102) EEPROM.write(0, 102);
         if (EEPROM.read(1) != currentMode) EEPROM.write(1, currentMode);  // запоминаем текущий эфект
         for (byte x = 0; x < MODE_AMOUNT; x++) {                          // сохраняем настройки всех режимов
-          if (EEPROM.read(x * 3 + 11) != modes[x].Brightness) EEPROM.write(x * 3 + 11, modes[x].Brightness);
-          if (EEPROM.read(x * 3 + 12) != modes[x].Speed) EEPROM.write(x * 3 + 12, modes[x].Speed);
-          if (EEPROM.read(x * 3 + 13) != modes[x].Scale) EEPROM.write(x * 3 + 13, modes[x].Scale);
+          if (EEPROM.read(x * 3 + 11) != Brightness[x]) EEPROM.write(x * 3 + 11, Brightness[x]);
+          if (EEPROM.read(x * 3 + 12) != Speed[x]) EEPROM.write(x * 3 + 12, Speed[x]);
+          if (EEPROM.read(x * 3 + 13) != Scale[x]) EEPROM.write(x * 3 + 13, Scale[x]);
         }
         // индикация сохранения
         ONflag = false;
@@ -90,14 +90,14 @@ void controlTick() {
       if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
       switch (numHold) {
         case 1:
-          modes[currentMode].Brightness = constrain(modes[currentMode].Brightness + (modes[currentMode].Brightness / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
+          Brightness[currentMode] = constrain(Brightness[currentMode] + (Brightness[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
           break;
         case 2:
-          modes[currentMode].Speed = constrain(modes[currentMode].Speed + (modes[currentMode].Speed / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          Speed[currentMode] = constrain(Speed[currentMode] + (Speed[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
           break;
 
         case 3:
-          modes[currentMode].Scale = constrain(modes[currentMode].Scale + (modes[currentMode].Scale / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          Scale[currentMode] = constrain(Scale[currentMode] + (Scale[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
           break;
       }
     }
@@ -105,7 +105,7 @@ void controlTick() {
       numHold = 0;
       numHold_Timer = millis();
     }
-    FastLED.setBrightness(modes[currentMode].Brightness);
+    FastLED.setBrightness(Brightness[currentMode]);
   }
 }
 

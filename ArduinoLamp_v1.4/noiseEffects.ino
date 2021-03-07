@@ -22,11 +22,11 @@ void Noise3D()
   if (loadingFlag)
   { setCurrentPalette(palette);
     loadingFlag = false;
-    scale = map(modes[currentMode].Scale,1,255,1,100);
-    speed = map(modes[currentMode].Scale,1,255,1,155);
+    scale = map(Scale[currentMode],1,10,1,100);
+    speed = map(Scale[currentMode],1,10,1,155);
     currentPalette = *curPalette;
   }
-  if (palette<=9)
+  if (palette<=255)
   fillNoiseLED();
   else{
     fillnoise8();
@@ -81,7 +81,7 @@ void fillNoiseLED()
       uint8_t index = noise[j][i];
       uint8_t bri =   noise[i][j];
       // if this palette is a 'loop', add a slowly-changing base value
-      if (modes[currentMode].Speed % 2)
+      if (Speed[currentMode] % 2)
       {
         index += hue;
       }

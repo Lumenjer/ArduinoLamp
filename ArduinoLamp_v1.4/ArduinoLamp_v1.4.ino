@@ -27,17 +27,17 @@ uint32_t DemTimer = 0UL;                      // тут будет хранит�
 void changePower() {    // плавное включение/выключение
   if (ONflag) {
     effectsTick();
-    for (int i = 0; i < modes[currentMode].Brightness; i += 8) {
+    for (int i = 0; i < Brightness[currentMode]; i += 8) {
       FastLED.setBrightness(i);
       delay(1);
       FastLED.show();
     }
-    FastLED.setBrightness(modes[currentMode].Brightness);
+    FastLED.setBrightness(Brightness[currentMode]);
     delay(2);
     FastLED.show();
   } else {
     effectsTick();
-    for (int i = modes[currentMode].Brightness; i > 8; i -= 8) {
+    for (int i = Brightness[currentMode]; i > 8; i -= 8) {
       FastLED.setBrightness(i);
       delay(1);
       FastLED.show();
@@ -85,9 +85,9 @@ void setup() {
   if (EEPROM.read(0) == 102) {                    // если было сохранение настроек, то восстанавливаем их (с)НР
     currentMode = EEPROM.read(1);
     for (byte x = 0; x < MODE_AMOUNT; x++) {
-      modes[x].Brightness = EEPROM.read(x * 3 + 11); // (2-10 байт - резерв)
-      modes[x].Speed = EEPROM.read(x * 3 + 12);
-      modes[x].Scale = EEPROM.read(x * 3 + 13);
+      Brightness[x] = EEPROM.read(x * 3 + 11); // (2-10 байт - резерв)
+      Speed[x] = EEPROM.read(x * 3 + 12);
+      Scale[x] = EEPROM.read(x * 3 + 13);
     }
   }
 }

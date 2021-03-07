@@ -6,7 +6,7 @@
 uint32_t effTimer; byte ind;
 void effectsTick() {
   {
-    if (ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 6) ? 256 - modes[currentMode].Speed : 50) ) {
+    if (ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 6) ? 256 - Speed[currentMode] : 50) ) {
       effTimer = millis(); switch (currentMode) {
         //|номер   |название функции эффекта     |тоже надо|
         case 0 : sparklesRoutine();             break;
@@ -28,21 +28,21 @@ void effectsTick() {
    #if (ROATRE)
       switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
-          ind = sqrt(modes[currentMode].Brightness + 1);
+          ind = sqrt(Brightness[currentMode] + 1);
           for (byte x = 0; x < HEIGHT ; x++) {
             if (ind > x) drawPixelXY(x, IND_POS, CHSV(10, 255, 255));
             else drawPixelXY(x, IND_POS,  0);
           }
           break;
         case 2:
-          ind = sqrt(modes[currentMode].Speed + 1);
+          ind = sqrt(Speed[currentMode] + 1);
           for (byte x = 0; x < WIDTH ; x++) {
             if (ind > x) drawPixelXY(x, IND_POS, CHSV(100, 255, 255));
             else drawPixelXY(x, IND_POS,  0);
           }
           break;
         case 3:
-          ind = sqrt(modes[currentMode].Scale + 1);
+          ind = sqrt(Scale[currentMode] + 1);
           for (byte x = 0; x < WIDTH ; x++) {
             if (ind > x) drawPixelXY(x, IND_POS, CHSV(150, 255, 255));
             else drawPixelXY(x, IND_POS,  0);
@@ -51,21 +51,21 @@ void effectsTick() {
           #else
           switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
         case 1:
-          ind = sqrt(modes[currentMode].Brightness + 1);
+          ind = sqrt(Brightness[currentMode] + 1);
           for (byte y = 0; y < HEIGHT ; y++) {
             if (ind > y) drawPixelXY(IND_POS, y, CHSV(10, 255, 255));
             else drawPixelXY(IND_POS, y,  0);
           }
           break;
         case 2:
-          ind = sqrt(modes[currentMode].Speed + 1);
+          ind = sqrt(Speed[currentMode] + 1);
           for (byte y = 0; y <= HEIGHT ; y++) {
             if (ind > y) drawPixelXY(IND_POS, y, CHSV(100, 255, 255));
             else drawPixelXY(IND_POS, y,  0);
           }
           break;
         case 3:
-          ind = sqrt(modes[currentMode].Scale + 1);
+          ind = sqrt(Scale[currentMode] + 1);
           for (byte y = 0; y < HEIGHT ; y++) {
             if (ind > y) drawPixelXY(IND_POS, y, CHSV(150, 255, 255));
             else drawPixelXY(IND_POS, y,  0);
@@ -91,7 +91,7 @@ void demoTick() {
       currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
     #endif
     #ifdef RANDOM_EFF
-      modes[currentMode].Speed = random8(); modes[currentMode].Scale = random8();
+      Speed[currentMode] = random8(); Scale[currentMode] = random8();
     #endif  
     memset8( leds, 0, NUM_LEDS * 3);
     DemTimer = millis() + DEMOT*1000;
