@@ -21,6 +21,7 @@ boolean loadingFlag = true;
 boolean ONflag = true;
 byte numHold;
 byte palette;
+boolean recievedFlag;
 unsigned long numHold_Timer = 0;
 uint32_t DemTimer = 0UL;                      // тут будет храниться время следующего переключения эффекта
 //-------------------------------------------------------------
@@ -48,18 +49,8 @@ void changePower() {    // плавное включение/выключени�
   }
 }
 
-#if(CONTROL_TYPE == 0)
-#include "IrControl.h"
-#elif(CONTROL_TYPE == 1)
-#include "1_BTn.h"
-#elif(CONTROL_TYPE == 2)
-#include "2_BTns.h"
-#elif(CONTROL_TYPE == 3)
-#include "3_BTns.h"
-#elif(CONTROL_TYPE == 4)
-#include "4_BTns.h"
-#elif(CONTROL_TYPE == 5)
-#include "ButtonWithIR.h"
+#if(CONTROL_TYPE <= 6)
+#include "Control.h"
 #else
 void controlTick() {return;}
 void SetUP() {return;}
@@ -78,10 +69,6 @@ void setup() {
   Serial.println();
 #endif
   SetUP();
-#ifdef DEBUG
-  Serial.begin(9600);
-  Serial.println();
-#endif
   if (EEPROM.read(0) == 102) {                    // если было сохранение настроек, то восстанавливаем их (с)НР
     currentMode = EEPROM.read(1);
     for (byte x = 0; x < MODE_AMOUNT; x++) {

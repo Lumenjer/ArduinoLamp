@@ -21,10 +21,6 @@ uint8_t deltaValue; // просто повторно используемая п
 byte hue, hue2;
 CRGB _pulse_color;
 CRGBPalette16 currentPalette(PartyColors_p);
-void blurScreen(fract8 blur_amount, CRGB *LEDarray = leds)
-{
-  blur2d(LEDarray, WIDTH, HEIGHT, blur_amount);
-}
 extern const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
 static const TProgmemRGBPalette16 ZeebraColors_p FL_PROGMEM = {CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black, CRGB::White, CRGB::Black, CRGB::Black, CRGB::Black};
 const TProgmemRGBPalette16 *palette_arr[] = {
@@ -400,129 +396,6 @@ void ballsRoutine()
   }
 }
 
-
-// --------------------------- ОГОНЬ(ОРИГ.) ------------------------
-unsigned char matrixValue[8][16];
-// эффект "огонь"
-#define SPARKLES 1        // вылетающие угольки вкл выкл
-unsigned char line[WIDTH];
-int pcnt = 0;
-
-//these values are substracetd from the generated values to give a shape to the animation
-const unsigned char valueMask[8][16] PROGMEM = {
-  {32 , 0  , 0  , 0  , 0  , 0  , 0  , 32 , 32 , 0  , 0  , 0  , 0  , 0  , 0  , 32 },
-  {64 , 0  , 0  , 0  , 0  , 0  , 0  , 64 , 64 , 0  , 0  , 0  , 0  , 0  , 0  , 64 },
-  {96 , 32 , 0  , 0  , 0  , 0  , 32 , 96 , 96 , 32 , 0  , 0  , 0  , 0  , 32 , 96 },
-  {128, 64 , 32 , 0  , 0  , 32 , 64 , 128, 128, 64 , 32 , 0  , 0  , 32 , 64 , 128},
-  {160, 96 , 64 , 32 , 32 , 64 , 96 , 160, 160, 96 , 64 , 32 , 32 , 64 , 96 , 160},
-  {192, 128, 96 , 64 , 64 , 96 , 128, 192, 192, 128, 96 , 64 , 64 , 96 , 128, 192},
-  {255, 160, 128, 96 , 96 , 128, 160, 255, 255, 160, 128, 96 , 96 , 128, 160, 255},
-  {255, 192, 160, 128, 128, 160, 192, 255, 255, 192, 160, 128, 128, 160, 192, 255}
-};
-
-//these are the hues for the fire,
-//should be between 0 (red) to about 25 (yellow)
-const unsigned char hueMask[8][16] PROGMEM = {
-  {1 , 11, 19, 25, 25, 22, 11, 1 , 1 , 11, 19, 25, 25, 22, 11, 1 },
-  {1 , 8 , 13, 19, 25, 19, 8 , 1 , 1 , 8 , 13, 19, 25, 19, 8 , 1 },
-  {1 , 8 , 13, 16, 19, 16, 8 , 1 , 1 , 8 , 13, 16, 19, 16, 8 , 1 },
-  {1 , 5 , 11, 13, 13, 13, 5 , 1 , 1 , 5 , 11, 13, 13, 13, 5 , 1 },
-  {1 , 5 , 11, 11, 11, 11, 5 , 1 , 1 , 5 , 11, 11, 11, 11, 5 , 1 },
-  {0 , 1 , 5 , 8 , 8 , 5 , 1 , 0 , 0 , 1 , 5 , 8 , 8 , 5 , 1 , 0 },
-  {0 , 0 , 1 , 5 , 5 , 1 , 0 , 0 , 0 , 0 , 1 , 5 , 5 , 1 , 0 , 0 },
-  {0 , 0 , 0 , 1 , 1 , 0 , 0 , 0 , 0 , 0 , 0 , 1 , 1 , 0 , 0 , 0 }
-};
-
-void fireRoutine() {
-  if (loadingFlag) {
-    loadingFlag = false;
-    //FastLED.clear();
-    generateLine();
-  }
-  if (pcnt >= 100) {
-    ShiftUp();
-    generateLine();
-    pcnt = 0;
-  }
-  drawFrame(pcnt);
-  pcnt += 30;
-}
-
-// Случайным образом генерирует следующую линию (matrix row)
-
-void generateLine() {
-  for (uint8_t x = 0; x < WIDTH; x++) {
-    line[x] = random(64, 255);
-  }
-}
-
-void ShiftUp() {
-  for (uint8_t y = HEIGHT - 1; y > 0; y--) {
-    for (uint8_t x = 0; x < WIDTH; x++) {
-      uint8_t newX = x;
-      if (x > 15) newX = x - 15;
-      if (y > 7) continue;
-      matrixValue[y][newX] = matrixValue[y - 1][newX];
-    }
-  }
-
-  for (uint8_t x = 0; x < WIDTH; x++) {
-    uint8_t newX = x;
-    if (x > 15) newX = x - 15;
-    matrixValue[0][newX] = line[newX];
-  }
-}
-
-// рисует кадр, интерполируя между 2 "ключевых кадров"
-// параметр pcnt - процент интерполяции
-
-void drawFrame(int pcnt) {
-  int nextv;
-
-  //each row interpolates with the one before it
-  for (unsigned char y = HEIGHT - 1; y > 0; y--) {
-    for (unsigned char x = 0; x < WIDTH; x++) {
-      uint8_t newX = x;
-      if (x > 15) newX = x - 15;
-      if (y < 8) {
-        nextv =
-          (((100.0 - pcnt) * matrixValue[y][newX]
-            + pcnt * matrixValue[y - 1][newX]) / 100.0)
-          - pgm_read_byte(&(valueMask[y][newX]));
-
-        CRGB color = CHSV(
-                       Scale[currentMode] * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
-                       255, // S
-                       (uint8_t)max(0, nextv) // V
-                     );
-
-        leds[getPixelNumber(x, y)] = color;
-      } else if (y == 8 && SPARKLES) {
-        if (random(0, 20) == 0 && getPixColorXY(x, y - 1) != 0) drawPixelXY(x, y, getPixColorXY(x, y - 1));
-        else drawPixelXY(x, y, 0);
-      } else if (SPARKLES) {
-
-        // старая версия для яркости
-        if (getPixColorXY(x, y - 1) > 0)
-          drawPixelXY(x, y, getPixColorXY(x, y - 1));
-        else drawPixelXY(x, y, 0);
-
-      }
-    }
-  }
-
-  //Перавя стрка интерполируется со следующей "next" линией
-  for (unsigned char x = 0; x < WIDTH; x++) {
-    uint8_t newX = x;
-    if (x > 15) newX = x - 15;
-    CRGB color = CHSV(
-                   Scale[currentMode] * 2.5 + pgm_read_byte(&(hueMask[0][newX])), // H
-                   255,           // S
-                   (uint8_t)(((100.0 - pcnt) * matrixValue[0][newX] + pcnt * line[newX]) / 100.0) // V
-                 );
-    leds[getPixelNumber(newX, 0)] = color;
-  }
-}
 // ------------------------------ ОГОНЬ(НОВЫЙ) -------------------------
 // (c) SottNick
 //сильно по мотивам https://pastebin.com/RG0QGzfK
@@ -586,14 +459,14 @@ void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать 
     for (int8_t x = -2; x < 3; x++)
       for (int8_t y = -2; y < 3; y++)
         if (abs(x) + abs(y) < 4)
-          drawPixelXYF_Y(lightersSpeed[1][l] + x, ball[l][0] + y, color);
+          drawPixelXY(lightersSpeed[1][l] + x, ball[l][0] + y, color);
   }
   else
   {
     for (int8_t x = -1; x < 3; x++)
       for (int8_t y = -1; y < 3; y++)
         if (!(x == -1 && (y == -1 || y == 2) || x == 2 && (y == -1 || y == 2)))
-          drawPixelXYF_Y(lightersSpeed[1][l] + x, ball[l][0] + y, color);
+          drawPixelXY(lightersSpeed[1][l] + x, ball[l][0] + y, color);
   }
 }
 
@@ -607,7 +480,7 @@ void LavaLampRoutine() {
     loadingFlag = false;
   }
   dimAll(100);
-  blurScreen(20);
+  blur2d(leds, WIDTH, HEIGHT, 20);
   for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
     // Draw 'ball'
     if (Scale[currentMode] == 1){
@@ -633,6 +506,7 @@ void LavaLampRoutine() {
     }
   }
 }
+
 
 // ----------------------- КИПЕНИЕ --------------------
 // (c) SottNick
@@ -661,4 +535,22 @@ void LLandRoutine(){
       //drawPixelXY(x, y, ColorFromPalette (*curPalette, map(inoise8(x * 50, y * 50 - t, 0) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
       drawPixelXY(x, y, ColorFromPalette (*curPalette, map(inoise8(x * deltaValue, y * deltaValue - ff_y, ff_z) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
   ff_z++;      
+}
+
+void FillNoise(bool ShiftX, bool ShiftY, bool ShiftZ, CRGBPalette16 palette, bool ShiftHue, bool BriNoise) {
+ double t = (millis() / (map(Speed[currentMode], 1, 255, 60, 1)));
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    for (uint8_t y = 0; y < HEIGHT; y++) {
+      leds[XY(x, y)] = ColorFromPalette(palette, inoise8((x * Scale[currentMode]) + ((ShiftX) ? t : t / 8), y * Scale[currentMode] + ((ShiftY) ? t : t / 16), ((ShiftZ) ? t : 0)) + hue, (BriNoise) ? inoise8((y * Scale[currentMode]) + ((ShiftX) ? t : t / 8), (x * Scale[currentMode]) + ((ShiftY) ? t : t / 16), ((ShiftZ) ? t : 0)) : 255);
+    }
+  }
+  if (ShiftHue) { hue++; } else { hue = 0; }
+}
+
+void Noise3D(){
+if (loadingFlag)
+  { setCurrentPalette(palette);
+    loadingFlag = false;
+  }
+  FillNoise(0,0,1,*curPalette,(palette ==0 || palette == 7 || palette == 8)? 1 : 0,1);
 }

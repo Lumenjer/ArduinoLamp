@@ -6,7 +6,7 @@
 uint32_t effTimer; byte ind;
 void effectsTick() {
   {
-    if (ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 6) ? 256 - Speed[currentMode] : 50) ) {
+    if (!recievedFlag && ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 6) ? 256 - Speed[currentMode] : 50) ) {
       effTimer = millis(); switch (currentMode) {
         //|номер   |название функции эффекта     |тоже надо|
         case 0 : sparklesRoutine();             break;
@@ -73,7 +73,7 @@ void effectsTick() {
           break;}
           #endif
 #endif
-#if (CONTROL_TYPE == 0 || CONTROL_TYPE == 5)
+#if (CONTROL_TYPE == 6 || CONTROL_TYPE == 5)
       if (!IRLremote.receiving())    // если на ИК приёмник не приходит сигнал (без этого НЕ РАБОТАЕТ!)
         FastLED.show();
 #else
