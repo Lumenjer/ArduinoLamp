@@ -18,10 +18,7 @@ void drawPixelXY(uint8_t x, uint8_t y, CRGB color)
 {
   if (x < 0 || x > (WIDTH - 1) || y < 0 || y > (HEIGHT - 1)) return;
   uint32_t thisPixel = XY((uint8_t)x, (uint8_t)y) * SEGMENTS;
-  for (uint8_t i = 0; i < SEGMENTS; i++)
-  {
-    leds[thisPixel + i] = color;
-  }
+    leds[thisPixel] = color;
 }
 
 // функция получения цвета пикселя по его номеру
@@ -132,8 +129,6 @@ uint16_t getPixelNumber(uint8_t x, uint8_t y)
 //Субпиксель по Y
 void drawPixelXYF_Y(uint16_t x, float y, const CRGB &color)
   {
-  //if (x<0 || y<0 || x>((float)WIDTH) || y>((float)HEIGHT)) return;
-
   // extract the fractional parts and derive their inverses
   uint8_t yy = (y - (int)y) * 255, iy = 255 - yy;
   // calculate the intensities for each affected pixel

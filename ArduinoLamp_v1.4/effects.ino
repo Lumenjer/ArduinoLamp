@@ -1,18 +1,18 @@
-// ================================= ЭФФЕКТЫ =====================================
-// --------------------------------- Конфетти ------------------------------------
-#define FADE_OUT_SPEED        (70U)         // скорость затухания
-//--------------------------------- Шторм,Метель ---------------------------------
-#define SNOW_DENSE (32U)                    // плотность снега - меньше = плотнее
-#define TAIL_STEP (127U)                    // длина хвоста
-// ------------------------------- Блуждающий кубик ------------------------------
-#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
-//------------------------------ Светлячки со шлейфом ----------------------------
-#define BALLS_AMOUNT          (3U)          // количество "шариков"
-#define CLEAR_PATH            (1U)          // очищать путь
-#define TRACK_STEP            (70U)         // длина хвоста шарика (чем больше цифра, тем хвост короче)
-//--------------------------------- Огонь (Новый) --------------------------------
-#define F_SCALE               (3U)          // масштаб огня
-//========================= ПЕРЕМЕННЫЕ ===============================
+// =============================== EFFECTS ====================================
+// --------------------------------- Confetti ------------------------------------
+#define FADE_OUT_SPEED (70U) // attenuation rate
+// --------------------------------- Storm, Blizzard ---------------------------------
+#define SNOW_DENSE (32U) // snow density - less = denser
+#define TAIL_STEP (127U) // tail length
+// ------------------------------- Wandering Cube ------------------------------
+#define RANDOM_COLOR (1U) // random color when bouncing
+// ------------------------------ Fireflies with a train ----------------------------
+#define BALLS_AMOUNT (3U) // number of "balls"
+#define CLEAR_PATH (1U) // clear path
+#define TRACK_STEP (70U) // ball tail length (the larger the number, the shorter the tail)
+// --------------------------------- Fire (New) ----------- ---------------------
+#define F_SCALE (10U) // fire scale
+// ======================== VARIABLES =============================
 uint8_t step; // какой-нибудь счётчик кадров или постедовательностей операций
 uint8_t shiftValue[HEIGHT];
 uint8_t shiftHue[HEIGHT];
@@ -538,10 +538,12 @@ void LLandRoutine(){
 }
 
 void FillNoise(bool ShiftX, bool ShiftY, bool ShiftZ, CRGBPalette16 palette, bool ShiftHue, bool BriNoise) {
- double t = (millis() / (map(Speed[currentMode], 1, 255, 60, 1)));
+ double t = (millis() / (map(Speed, 1, 255, 60, 0)));
   for (uint8_t x = 0; x < WIDTH; x++) {
     for (uint8_t y = 0; y < HEIGHT; y++) {
-      leds[XY(x, y)] = ColorFromPalette(palette, inoise8((x * Scale[currentMode]) + ((ShiftX) ? t : t / 8), y * Scale[currentMode] + ((ShiftY) ? t : t / 16), ((ShiftZ) ? t : 0)) + hue, (BriNoise) ? inoise8((y * Scale[currentMode]) + ((ShiftX) ? t : t / 8), (x * Scale[currentMode]) + ((ShiftY) ? t : t / 16), ((ShiftZ) ? t : 0)) : 255);
+      byte noise = inoise8((x * Scale) + ((ShiftX) ? t : t / 8), y * Scale + ((ShiftY) ? t : t / 16), ((ShiftZ) ? t : 0));
+      byte Inoise = inoise8((y * Scale) + ((ShiftY) ? t : t / 16), x * Scale + ((ShiftX) ? t : t / 8), ((ShiftZ) ? t : 0));
+      leds[XY(x, y)] = ColorFromPalette(palette, noise + hue,(!BriNoise || Inoise > 127)? 255 : dim8_raw(Inoise * 2));
     }
   }
   if (ShiftHue) { hue++; } else { hue = 0; }

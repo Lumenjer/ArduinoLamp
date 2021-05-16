@@ -1,33 +1,24 @@
 ﻿# ArduinoLamp 
 
-Это облегченная версия прошивки AlexGyver под ардуино.
-(Оригинал здесь: ![Исходная версия](https://github.com/AlexGyver/GyverLamp/))
+This is lighter firmware GyverLamp_for_Arduino
+Updated from:https://github.com/Norovl/GyverLamp_for_Arduino
 
-Обновления от:https://github.com/Norovl/GyverLamp_for_Arduino
+Original version: https://github.com/AlexGyver/GyverLamp/
 
-Вся информация здесь: https://community.alexgyver.ru/threads/obsuzhdenija-proshivki-arduinolamp-i-gyverlamp-for-arduino.3590/
+All information there: https://community.alexgyver.ru/threads/obsuzhdenija-proshivki-arduinolamp-i-gyverlamp-for-arduino.3590/
 
-## Краткое описание:
+## Short description:
 
-Лампа на адресных светодиодах, позволяющих получить красивые эффекты свечения:
+The lamp on addressable LEDs that makes beautiful glow effects:
 
-Из оригинала было убрано:
-- 	будильник;
-- 	работа с Wi-Fi (у ардуинки его нет)(но можно поставить Bluetooth версию, смотрите в branches);
+From the original were deleted:
+- 	clock alarm;
+- 	working with WIFI(but there is BlueTooth version);
 
-Что добавлено: много эффектов, хотите посмотрите,
--	демо включается или выключается четырехкратным нажатием кнопки;      
-- 	сохранение настроек всех эффектов, в т.ч. текущего режима в энергонезависимой
-	памяти.	Подтверждением будет выключение и включение лампы;
-- 	регулирование скорости (speed) эффектов;
-- 	регулирование масштаба (scale) эффектов;
-- 	индикация уровня яркости/скорости/масштаба вертикальной полосой	оранжевого/
-	зеленого/синего цветов соответственно;
--	Немного гибчее система и новые пути управления	
+What was added:
+-	new effects;
+-	demo mode;      
+- 	saving all effects settings;
+- 	indication of change of settings;
+-	more flexible system and new ways to controle;	
 
-Регулировка уровня яркости/скорости/масштаба реверсивная, т.е. при повторном
-регулировании изменения будут производиться в обратную сторону (сначала в бОльшую,
-затем в мЕньшую).
-
-Для работы всех режимов кнопки ОБЯЗАТЕЛЬНО нужно поставить у себя папку GyverButtonOld
-в Arduino\libraries.

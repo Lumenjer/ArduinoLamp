@@ -1,17 +1,17 @@
-// Если вы хотите добавить эффекты или сделать им копии для демонстрации на разных настройках, нужно делать это в 5 местах:
-// 1. в файле effects.ino - добавляется программный код самого эффекта.
-// 2. В Constants.h указывается общее количество MODE_AMOUNT.
-// 3. здесь в файле effectTicker.ino - подключается процедура вызова эффекта case"номер": "назва эффекта"; break; 
-//    Можно подключать один и тот же эффект под разными номерами. Но это уже слишком.
+// If you want to add effects or make copies for them to demonstrate in different settings, you need to do it in 3 places:
+// 1. in the file effects.ino - the program code of the effect is added.
+// 2. Constants.h specifies the total number of MODE_AMOUNT.
+// 3. here in the file effectTicker.ino - the procedure of calling the effect of the case "number" is connected: "effect name"; break;
+// It is possible to connect the same effect under different numbers. But that's too much.
 uint32_t effTimer; byte ind;
 void effectsTick() {
   {
     if (!recievedFlag && ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 6) ? 256 - Speed[currentMode] : 50) ) {
       effTimer = millis(); switch (currentMode) {
-        //|номер   |название функции эффекта     |тоже надо|
+        //|num  |function name
         case 0 : sparklesRoutine();             break;
         case 1 : RainbowRoutine();              break;
-        case 2 : FireRoutine();                 break;//Новый-Fire.. Старый fire...
+        case 2 : FireRoutine();                 break;
         case 3 : LavaLampRoutine();             break;
         case 4 : Noise3D();                     break;
         case 5 : whiteLampRoutine();            break;
@@ -25,56 +25,10 @@ void effectsTick() {
         case 13: LLandRoutine();                break;
       }
 #ifdef INDICATOR
-   #if (ROATRE)
-      switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
-        case 1:
-          ind = sqrt(Brightness[currentMode] + 1);
-          for (byte x = 0; x < HEIGHT ; x++) {
-            if (ind > x) drawPixelXY(x, IND_POS, CHSV(10, 255, 255));
-            else drawPixelXY(x, IND_POS,  0);
-          }
-          break;
-        case 2:
-          ind = sqrt(Speed[currentMode] + 1);
-          for (byte x = 0; x < WIDTH ; x++) {
-            if (ind > x) drawPixelXY(x, IND_POS, CHSV(100, 255, 255));
-            else drawPixelXY(x, IND_POS,  0);
-          }
-          break;
-        case 3:
-          ind = sqrt(Scale[currentMode] + 1);
-          for (byte x = 0; x < WIDTH ; x++) {
-            if (ind > x) drawPixelXY(x, IND_POS, CHSV(150, 255, 255));
-            else drawPixelXY(x, IND_POS,  0);
-          }
-          break;}
-          #else
-          switch (numHold) {    // индикатор уровня яркости/скорости/масштаба
-        case 1:
-          ind = sqrt(Brightness[currentMode] + 1);
-          for (byte y = 0; y < HEIGHT ; y++) {
-            if (ind > y) drawPixelXY(IND_POS, y, CHSV(10, 255, 255));
-            else drawPixelXY(IND_POS, y,  0);
-          }
-          break;
-        case 2:
-          ind = sqrt(Speed[currentMode] + 1);
-          for (byte y = 0; y <= HEIGHT ; y++) {
-            if (ind > y) drawPixelXY(IND_POS, y, CHSV(100, 255, 255));
-            else drawPixelXY(IND_POS, y,  0);
-          }
-          break;
-        case 3:
-          ind = sqrt(Scale[currentMode] + 1);
-          for (byte y = 0; y < HEIGHT ; y++) {
-            if (ind > y) drawPixelXY(IND_POS, y, CHSV(150, 255, 255));
-            else drawPixelXY(IND_POS, y,  0);
-          }
-          break;}
-          #endif
+      drawLevel();
 #endif
-#if (CONTROL_TYPE == 6 || CONTROL_TYPE == 5)
-      if (!IRLremote.receiving())    // если на ИК приёмник не приходит сигнал (без этого НЕ РАБОТАЕТ!)
+#ifdef USE_IR
+      if (!IRLremote.receiving())
         FastLED.show();
 #else
       FastLED.show();
@@ -83,18 +37,70 @@ void effectsTick() {
   }
 }
 
+void drawLevel() {
+#if (ROATRE)
+  switch (numHold) {
+    case 1:
+      ind = map(Brightness[currentMode], 0, 255, 0, WIDTH - 1);
+      for (byte x = 0; x < HEIGHT ; x++) {
+        if (ind > x) drawPixelXY(x, IND_POS, CHSV(10, 255, 255));
+        else drawPixelXY(x, IND_POS,  0);
+      }
+      break;
+    case 2:
+      ind = map(Speed[currentMode], 0, 255, 0, WIDTH - 1);
+      for (byte x = 0; x < WIDTH ; x++) {
+        if (ind > x) drawPixelXY(x, IND_POS, CHSV(100, 255, 255));
+        else drawPixelXY(x, IND_POS,  0);
+      }
+      break;
+    case 3:
+      ind = map(Scale[currentMode], 0, 255, 0, WIDTH - 1);
+      for (byte x = 0; x < WIDTH ; x++) {
+        if (ind > x) drawPixelXY(x, IND_POS, CHSV(150, 255, 255));
+        else drawPixelXY(x, IND_POS,  0);
+      }
+      break;
+  }
+#else
+  switch (numHold) {
+    case 1:
+      ind = map(Brightness[currentMode], 0, 255, 0, HEIGHT - 1);
+      for (byte y = 0; y < HEIGHT ; y++) {
+        if (ind > y) drawPixelXY(IND_POS, y, CHSV(10, 255, 255));
+        else drawPixelXY(IND_POS, y,  0);
+      }
+      break;
+    case 2:
+      ind = map(Speed[currentMode], 0, 255, 0, HEIGHT - 1);
+      for (byte y = 0; y <= HEIGHT ; y++) {
+        if (ind > y) drawPixelXY(IND_POS, y, CHSV(100, 255, 255));
+        else drawPixelXY(IND_POS, y,  0);
+      }
+      break;
+    case 3:
+      ind = map(Scale[currentMode], 0, 255, 0, HEIGHT - 1);
+      for (byte y = 0; y < HEIGHT ; y++) {
+        if (ind > y) drawPixelXY(IND_POS, y, CHSV(150, 255, 255));
+        else drawPixelXY(IND_POS, y,  0);
+      }
+      break;
+  }
+#endif
+}
+
 void demoTick() {
   if (isDemo && ONflag && millis() >= DemTimer) {
-    #ifdef RANDOM_DEMO
-      currentMode = random8(MODE_AMOUNT); // если нужен следующий случайный эффект
-    #else
-      currentMode = currentMode + 1U < MODE_AMOUNT ? currentMode + 1U : 0U; // если нужен следующий по списку эффект
-    #endif
-    #ifdef RANDOM_EFF
-      Speed[currentMode] = random8(); Scale[currentMode] = random8();
-    #endif  
+#ifdef RANDOM_DEMO
+    GoToEffect(random8(MODE_AMOUNT)); // если нужен следующий случайный эффект
+#else
+    NextEffect();
+#endif
+#ifdef RANDOM_EFF
+    Speed[currentMode] = random8(); Scale[currentMode] = random8();
+#endif
     memset8( leds, 0, NUM_LEDS * 3);
-    DemTimer = millis() + DEMOT*1000;
+    DemTimer = millis() + DEMOT * 1000;
     loadingFlag = true;
   }
 }
