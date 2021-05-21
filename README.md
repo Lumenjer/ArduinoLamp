@@ -20,5 +20,5 @@ What was added:
 -	demo mode;      
 - 	saving all effects settings;
 - 	indication of change of settings;
--	more flexible system and new ways to controle;	
+-	more flexible system and new ways to control;	
 

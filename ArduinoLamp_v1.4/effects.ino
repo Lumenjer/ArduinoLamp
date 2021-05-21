@@ -539,10 +539,10 @@ void LLandRoutine(){
 
 void FillNoise(bool ShiftX, bool ShiftY, bool ShiftZ, CRGBPalette16 palette, bool ShiftHue, bool BriNoise) {
  double t = (millis() / (map(Speed, 1, 255, 60, 0)));
-  for (uint8_t x = 0; x < WIDTH; x++) {
-    for (uint8_t y = 0; y < HEIGHT; y++) {
-      byte noise = inoise8((x * Scale) + ((ShiftX) ? t : t / 8), y * Scale + ((ShiftY) ? t : t / 16), ((ShiftZ) ? t : 0));
-      byte Inoise = inoise8((y * Scale) + ((ShiftY) ? t : t / 16), x * Scale + ((ShiftX) ? t : t / 8), ((ShiftZ) ? t : 0));
+  for (byte x = 0; x < WIDTH; x++) {
+    for (byte y = 0; y < HEIGHT; y++) {
+      uint8_t noise = inoise8((x * Scale[currentMode]) + ((ShiftX) ? t : t / 8), (y * Scale[currentMode]) + ((ShiftY) ? t : t / 16), ((ShiftZ) ? t : 0));
+      uint8_t Inoise = inoise8((y * Scale[currentMode]) + ((ShiftY) ? t : t / 16), (x * Scale[currentMode]) + ((ShiftX) ? t : t / 8), ((ShiftZ) ? t : 0));
       leds[XY(x, y)] = ColorFromPalette(palette, noise + hue,(!BriNoise || Inoise > 127)? 255 : dim8_raw(Inoise * 2));
     }
   }
