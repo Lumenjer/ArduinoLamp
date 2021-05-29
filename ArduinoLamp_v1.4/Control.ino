@@ -36,6 +36,9 @@ void changePower() {
     delay(2);
     FastLED.show();
   }
+#if defined(MOSFET_PIN) && defined(MOSFET_LEVEL)          // установка сигнала в пин, управляющий MOSFET транзистором, соответственно состоянию вкл/выкл матрицы
+  digitalWrite(MOSFET_PIN, ONflag ? MOSFET_LEVEL : !MOSFET_LEVEL);
+#endif
 }
 
 
@@ -307,31 +310,14 @@ void IRTick() {
   if (ir_flag) { // если данные пришли
     switch (IRdata) {
       // режимы
-      case IR_ON:   if (ONflag) {
-          ONflag = false;
-          changePower();
-        } else {
-          ONflag = true;
-          changePower();
-        }
+      case IR_ON:
+        changePower();
         break;
       case IR_NEXT:
-        if (++currentMode >= MODE_AMOUNT) currentMode = 0;
-        FastLED.setBrightness(Brightness[currentMode]);
-        loadingFlag = true;
-        //settChanged = true;
-        memset8( leds, 0, NUM_LEDS * 3);
-        debugPrint();
-        delay(1);
+        NextEffect();
         break;
       case IR_PREVIOUS:
-        if (--currentMode < 0) currentMode = MODE_AMOUNT - 1;
-        FastLED.setBrightness(Brightness[currentMode]);
-        loadingFlag = true;
-        //settChanged = true;
-        memset8( leds, 0, NUM_LEDS * 3);
-        debugPrint();
-        delay(1);
+        PrevEffect();
         break;
       case IR_DEMO:
         isDemo = !isDemo;
@@ -388,15 +374,15 @@ void IRTick() {
   FastLED.setBrightness(Brightness[currentMode]);
 }
 
-void controlTick(){
+void controlTick() {
 #ifdef USE_BUTTON
-ButtonTick();
+  ButtonTick();
 #endif
 #ifdef USE_IR
-IRTick();
+  IRTick();
 #endif
 #ifdef USE_BT
-BTTick();
+  BTTick();
 #endif
 }
 

@@ -18,8 +18,10 @@
 //#define XY_MAPPING
 // ----------------- CONNECTING AND CONTROL ------------
 #define LED_PIN 4
+#define MOSFET_PIN 5
+#define MOSFET_LEVEL HIGH
 #define USE_BUTTON
-#define USE_IR
+//#define USE_IR
 #define USE_BT
 #define IR_PIN 3
 #define BUTTON_PIN 2
@@ -33,7 +35,7 @@ bool isDemo = 0;               // Demo from start
 #define numHold_Time (1*1000)
 #define ROTARE 1               // 0 - from left to right 1 - from down to up
 #define IND_POS 4
-//-------------------- ЭФФЕКТЫ --------------
+//-------------------- EFFECTS --------------
 #define MODE_AMOUNT 14
 byte Brightness[MODE_AMOUNT]{16,8,9,23,11,9,9,10,27,15,22,21,7};
 byte Speed[MODE_AMOUNT]{142,196,217,203,19,207,180,252,186,225,180,198,240};

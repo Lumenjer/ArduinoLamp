@@ -449,60 +449,46 @@ void FireRoutine() {
     ff_z++;
 }
 
-// ----------------------------------- ЛАВОЛАМПА ------------------------------
-//Основа @SottNick
-//Оптимизация @Stepko
-float ball[(WIDTH / 2) -  ((WIDTH - 1) & 0x01)][2];
-void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать не получается, будем попиксельно вырисовывать 2 варианта пузырей
-  if (lightersSpeed[0][l] == 2)
-  {
-    for (int8_t x = -2; x < 3; x++)
-      for (int8_t y = -2; y < 3; y++)
-        if (abs(x) + abs(y) < 4)
-          drawPixelXY(lightersSpeed[1][l] + x, ball[l][0] + y, color);
-  }
-  else
-  {
-    for (int8_t x = -1; x < 3; x++)
-      for (int8_t y = -1; y < 3; y++)
-        if (!(x == -1 && (y == -1 || y == 2) || x == 2 && (y == -1 || y == 2)))
-          drawPixelXY(lightersSpeed[1][l] + x, ball[l][0] + y, color);
-  }
-}
-
-void LavaLampRoutine() {
-  if (loadingFlag)
-  { for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
-      lightersSpeed[0][i] = random(1, 3);
-      ball[i][1] = (float)random8(5, 11) / (Speed[currentMode]) / 4.0;
-      ball[i][0] = 0;
-      lightersSpeed[1][i] = i * 2U + random8(2);}
+byte selX;
+byte PosX[WIDTH];
+float PosY[WIDTH];
+bool sending,sendDirection;
+void sendVoxels() { // remade by me
+  if (loadingFlag) {
+    FastLED.clear();
+    for (uint8_t i = 0; i < WIDTH; i++) {
+      PosX[i] = i;
+      PosY[i] = (random(2) == 1) ? HEIGHT - 1 : 0;
+    }
     loadingFlag = false;
   }
-  dimAll(100);
-  blur2d(leds, WIDTH, HEIGHT, 20);
-  for (byte i = 0; i < (WIDTH / 2) -  ((WIDTH - 1) & 0x01); i++) {
-    // Draw 'ball'
-    if (Scale[currentMode] == 1){
-      drawBlob(i,CHSV(hue,255,255));
-      hue++;}
+  for (uint8_t i = 0; i < WIDTH; i++) {
+    if(i == selX)
+    drawPixelXY(PosX[i], PosY[i], CHSV(Scale[currentMode], 255, 255));
     else
-      drawBlob(i, CHSV(Scale[currentMode], 255, 255));
-
-    if (ball[i][0] + lightersSpeed[0][i] >= HEIGHT - 1)
-      ball[i][0] += (ball[i][1] * ((HEIGHT - 1 - ball[i][0]) / lightersSpeed[0][i] + 0.005));
-    else if (ball[i][0] - lightersSpeed[0][i] <= 0)
-      ball[i][0] += (ball[i][1] * (ball[i][0] / lightersSpeed[0][i] + 0.005));
-    else
-      ball[i][0] += ball[i][1];
-    if (ball[i][0] < 0.01) {                  // почему-то при нуле появляется мерцание (один кадр, еле заметно)
-      ball[i][1] = (float)random8(5, 11) / (257U - Speed[currentMode]) / 4.0;
-      ball[i][0] = 0.01;
-    }
-    else if (ball[i][0] > HEIGHT - 1.01) {    // тоже на всякий пожарный
-      ball[i][1] = (float)random8(5, 11) / (257U - Speed[currentMode]) / 4.0;
-      ball[i][1] = -ball[i][1];
-      ball[i][0] = HEIGHT - 1.01;
+    leds[XY(PosX[i], PosY[i])] = CHSV(Scale[currentMode], 255, 255);
+    if (!sending) {
+      selX = random(0, WIDTH);
+      if (PosY[selX] == 0) {
+        sendDirection = 1;
+      } else if (PosY[selX] == HEIGHT - 1) {
+        sendDirection = 0;
+      }
+      sending = true;
+    } else {
+      if (sendDirection == 1) {
+        PosY[selX] += 0.02;
+        if (PosY[selX] >= HEIGHT - 1) {
+          PosY[selX] = HEIGHT - 1;
+          sending = false;
+        }
+      } else {
+        PosY[selX] -= 0.02;
+        if (PosY[selX] <= 0) {
+          PosY[selX] = 0;
+          sending = false;
+        }
+      }
     }
   }
 }

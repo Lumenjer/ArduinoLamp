@@ -12,7 +12,7 @@ void effectsTick() {
         case 0 : sparklesRoutine();             break;
         case 1 : RainbowRoutine();              break;
         case 2 : FireRoutine();                 break;
-        case 3 : LavaLampRoutine();             break;
+        case 3 : sendVoxels();                  break;
         case 4 : Noise3D();                     break;
         case 5 : whiteLampRoutine();            break;
         case 6 : colorRoutine();                break;
