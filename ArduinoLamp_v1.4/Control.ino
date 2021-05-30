@@ -1,18 +1,3 @@
-// ----- ПУЛЬТ ИК -----
-#define IR_ON 0x1AED14B5         // Remote Code for On / Off
-#define IR_NEXT 0xA21606B5       // remote control code for Next Effect
-#define IR_PREVIOUS 0xA52ACBB5   // Remote Code for Previous Effect
-#define IR_SAVE 0x8D1B67B5       // remote control code to save effect settings
-#define IR_DEMO 0xB50F59B5       // remote control code to enable or disable the demo
-#define IR_BRIGHT_DOWN 0xB1AE17B5// Remote control code to decrease Brightness
-#define IR_BRIGHT_UP 0x78BBC7B5  // Remote Brightness Code
-#define IR_SPEED_DOWN 0xC2F8F2B5 // remote control code to slow down
-#define IR_SPEED_UP 0xBFE42DB5   // Speed ​​control code
-#define IR_SCALE_DOWN 0x2F4CB4B5 // Zoom control panel code
-#define IR_SCALE_UP 0xD7F391B5   // Zoom Remote Code
-#define IR_PALETTE 0x21631BB5    // remote control code for Palettes
-#define IR_ERASE 0x1E4E56B5      // remote control code to set default settings
-#define BUT_PULL HIGH_PULL
 
 void changePower() {
   if (ONflag) {
