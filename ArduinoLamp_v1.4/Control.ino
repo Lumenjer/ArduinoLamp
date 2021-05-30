@@ -108,8 +108,9 @@ boolean runningFlag;
 
 byte parse_index;
 String string_convert = "";
-enum modes {NORMAL} parseMode;
+enum modes {NORMAL, TEXT} parseMode;
 
+String runningText;
 
 // ********************* ПРИНИМАЕМ ДАННЫЕ **********************
 void parsing() {
@@ -133,30 +134,35 @@ void parsing() {
             isDemo = !isDemo;
             DemTimer = 0;
             break;
-          case 4:  break;
-          case 5:  break;
+          case 4: runningFlag = true; break;
+          case 5: runningFlag = false; break;
           case 6:  SaveSettings();
             break;
         }
       case 2:
+        loadingFlag = true;
         Brightness[currentMode] = map(intData[1], 1, 255, 10, BRIGHTNESS);
         FastLED.setBrightness(Brightness[currentMode]);
-        loadingFlag = true;
         break;
       case 3:
         Speed[currentMode] = intData[1];
         loadingFlag = true;
         break;
       case 4:
-        Scale[currentMode] = intData[1];
         loadingFlag = true;
+        Scale[currentMode] = intData[1];
+
         break;
       case 5:
-        palette = map(intData[1], 1, 255, 1, 10);
         loadingFlag = true;
+        palette = map(intData[1], 1, 255, 1, 10);
         break;
       case 6:
         loadingFlag = true;
+        break;
+      case 7:
+        loadingFlag = true;
+        //DEMOTIME = intData[1];
         break;
     }
   }
@@ -164,14 +170,21 @@ void parsing() {
   // ****************** ПАРСИНГ *****************
   if (Serial.available() > 0) {
     char incomingByte;
-    incomingByte = Serial.read();        // обязательно ЧИТАЕМ входящий символ
+    if (parseMode == TEXT) {     // если нужно принять строку
+      runningText = Serial.readString();  // принимаем всю
+      incomingByte = ending;              // сразу завершаем парс
+      parseMode = NORMAL;
+    } else {
+      incomingByte = Serial.read();        // обязательно ЧИТАЕМ входящий символ
+    }
     if (parseStarted) {                         // если приняли начальный символ (парсинг разрешён)
       if (incomingByte != divider && incomingByte != ending) {   // если это не пробел И не конец
         string_convert += incomingByte;       // складываем в строку
       } else {                                // если это пробел или ; конец пакета
         if (parse_index == 0) {
           byte thisMode = string_convert.toInt();
-          parseMode = NORMAL;
+          if (thisMode == 6) parseMode = TEXT;
+          else parseMode = NORMAL;
           //if (thisMode != 7 || thisMode != 0) runningFlag = false;
         }
         if (parse_index == 1) {       // для второго (с нуля) символа в посылке
@@ -195,7 +208,6 @@ void parsing() {
     }
   }
 }
-
 void BTTick() {
   parsing();                           // принимаем данные
 
@@ -279,7 +291,7 @@ void ButtonTick() {
   }
 }
 
-// ----- IR REMOTE / ИК ПУЛЬТ ----- from MusicColor v2 by AlexGyver
+// ----- IR REMOTE ----- from MusicColor v2 by AlexGyver
 //--------------------------------------------------------------------------------------
 #include <IRLremote.h>
 CHashIR IRLremote;

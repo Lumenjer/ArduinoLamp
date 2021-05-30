@@ -21,7 +21,7 @@
 #define MOSFET_PIN 5
 #define MOSFET_LEVEL HIGH
 #define USE_BUTTON
-//#define USE_IR
+#define USE_IR
 #define USE_BT
 #define IR_PIN 3
 #define BUTTON_PIN 2
@@ -40,6 +40,15 @@ bool isDemo = 0;               // Demo from start
 byte Brightness[MODE_AMOUNT]{16,8,9,23,11,9,9,10,27,15,22,21,7};
 byte Speed[MODE_AMOUNT]{142,196,217,203,19,207,180,252,186,225,180,198,240};
 byte Scale[MODE_AMOUNT]{63,56,1,150,59,26,99,32,23,1,93,18};
+//--------------------RUNNING STRING --------
+#define TEXT_DIRECTION 1
+#define MIRR_V 0
+#define MIRR_H 0
+#define TEXT_HEIGHT -1
+#define LET_WIDTH 5
+#define LET_HEIGHT 8
+#define SPACE 1
+#define COL 2             // (0хRRGGBB/1- rainbow 2 - all different)
 byte currentMode = 10;
 //-------------------- OTHER ---------------
 //#define DEBUG                // Not done

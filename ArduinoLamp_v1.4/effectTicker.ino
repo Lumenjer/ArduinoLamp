@@ -3,37 +3,35 @@
 // 2. Constants.h specifies the total number of MODE_AMOUNT.
 // 3. here in the file effectTicker.ino - the procedure of calling the effect of the case "number" is connected: "effect name"; break;
 // It is possible to connect the same effect under different numbers. But that's too much.
-uint32_t effTimer; byte ind;
 void effectsTick() {
-  {
-    if (!recievedFlag && ONflag && millis() - effTimer >= ((currentMode < 3 || currentMode > 6) ? 256 - Speed[currentMode] : 50) ) {
-      effTimer = millis(); switch (currentMode) {
-        //|num  |function name
-        case 0 : sparklesRoutine();             break;
-        case 1 : RainbowRoutine();              break;
-        case 2 : FireRoutine();                 break;
-        case 3 : sendVoxels();                  break;
-        case 4 : Noise3D();                     break;
-        case 5 : whiteLampRoutine();            break;
-        case 6 : colorRoutine();                break;
-        case 7 : colorsRoutine();               break;
-        case 8 : matrixRoutine();               break;
-        case 9 : RainRoutine();                 break;
-        case 10: stormRoutine();                break;
-        case 11: ballRoutine();                 break;
-        case 12: ballsRoutine();                break;
-        case 13: LLandRoutine();                break;
-      }
+  if (!recievedFlag && ONflag && millis() - effTimer >= ((currentMode < 4 || currentMode > 6) ? 256 - Speed[currentMode] : 50) ) {
+    effTimer = millis(); switch (currentMode) {
+      //|num  |function name
+      case 0 : sparklesRoutine();             break;
+      case 1 : RainbowRoutine();              break;
+      case 2 : FireRoutine();                 break;
+      case 3 : sendVoxels();                  break;
+      case 4 : Noise3D();                     break;
+      case 5 : whiteLampRoutine();            break;
+      case 6 : colorRoutine();                break;
+      case 7 : colorsRoutine();               break;
+      case 8 : matrixRoutine();               break;
+      case 9 : RainRoutine();                 break;
+      case 10: stormRoutine();                break;
+      case 11: ballRoutine();                 break;
+      case 12: ballsRoutine();                break;
+      case 13: LLandRoutine();                break;
+    }
+    if (runningFlag) fillString(runningText, COL);
 #ifdef INDICATOR
-      drawLevel();
+    if (numHold != 0)drawLevel();
 #endif
 #ifdef USE_IR
-      if (!IRLremote.receiving())
-        FastLED.show();
-#else
+    if (!IRLremote.receiving())
       FastLED.show();
+#else
+    FastLED.show();
 #endif
-    }
   }
 }
 

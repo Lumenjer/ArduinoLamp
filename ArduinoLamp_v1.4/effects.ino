@@ -58,7 +58,7 @@ void sparklesRoutine()
       drawPixelXY(x, y, CHSV(random(0U, 255U), 255U, 255U));
     }
   }
-  dimAll(255-FADE_OUT_SPEED);
+  dimAll(255 - FADE_OUT_SPEED);
 }
 void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // фейдер
 {
@@ -76,7 +76,7 @@ void fadePixel(uint8_t i, uint8_t j, uint8_t step)          // фейдер
     leds[pixelNum] = 0U;
   }
 }
-// ----------------------------- РАДУГА 2Д --------------------------  
+// ----------------------------- РАДУГА 2Д --------------------------
 // ________________ РАДУГА ВЕРТИКАЛЬНАЯ/ГОРИЗОНТАЛЬНАЯ ______________
 void rainbowHorVertRoutine(bool isVertical)
 { hue += 4;
@@ -133,17 +133,16 @@ void RainRoutine()
     CRGB thisColor = getPixColorXY(x, HEIGHT - 1U);
     if ((uint32_t)thisColor == 0U)
     {
-     if (random8(0, 50) == 0U)
+      if (random8(0, 50) == 0U)
       {
-      if (Scale[currentMode]==1) drawPixelXY(x, HEIGHT - 1U, CHSV(random(0, 9) * 28, 255U, 255U)); // Радужный дождь
-      else
-      if (Scale[currentMode]==255) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
-      else
-      drawPixelXY(x, HEIGHT - 1U, CHSV(Scale[currentMode]+random(0, 16),255,255)); // Цветной дождь
+        if (Scale[currentMode] == 1) drawPixelXY(x, HEIGHT - 1U, CHSV(random(0, 9) * 28, 255U, 255U)); // Радужный дождь
+        else if (Scale[currentMode] == 255) drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4)); // Снег
+        else
+          drawPixelXY(x, HEIGHT - 1U, CHSV(Scale[currentMode] + random(0, 16), 255, 255)); // Цветной дождь
       }
-  }
+    }
     else
-       leds[XY(x,HEIGHT - 1U)]-=CHSV(0,0,random(96, 128));
+      leds[XY(x, HEIGHT - 1U)] -= CHSV(0, 0, random(96, 128));
   }
   // сдвигаем всё вниз
   for (uint8_t x = 0U; x < WIDTH; x++)
@@ -333,11 +332,11 @@ void ballRoutine()
     //vectorB[1] += random(0, 6) - 3;
   }
 
-      //if (Scale[currentMode] & 0x01)
-      //dimAll(135U);
-      //dimAll(255U - (Scale[currentMode] - 1U) % 11U * 24U);
-    else
-  FastLED.clear();
+  //if (Scale[currentMode] & 0x01)
+  //dimAll(135U);
+  //dimAll(255U - (Scale[currentMode] - 1U) % 11U * 24U);
+  else
+    FastLED.clear();
 
   for (uint8_t i = 0U; i < deltaValue; i++)
     for (uint8_t j = 0U; j < deltaValue; j++)
@@ -392,7 +391,7 @@ void ballsRoutine()
       lightersPos[1][j] = (HEIGHT - 1) * 10;
       lightersSpeed[1][j] = -lightersSpeed[1][j];
     }
-    drawPixelXY(lightersPos[0][j] / 10,lightersPos[1][j] / 10, CHSV(lightersColor[j], 255, 255));
+    drawPixelXY(lightersPos[0][j] / 10, lightersPos[1][j] / 10, CHSV(lightersColor[j], 255, 255));
   }
 }
 
@@ -411,7 +410,7 @@ void FireRoutine() {
     step = map(255U - deltaValue, 87U, 247U, 4U, 32U); // вероятность смещения искорки по оси ИКС
     for (uint8_t j = 0; j < HEIGHT; j++) {
       shiftHue[j] = (HEIGHT - 1 - j) * 255 / (HEIGHT - 1); // init colorfade table
-    currentPalette = CRGBPalette16(CRGB::Black, CHSV(Scale[currentMode], 255U, 255U) , CHSV(Scale[currentMode]+50, 255U, 255U) , CHSV(Scale[currentMode]+50, 100, 255U));
+      currentPalette = CRGBPalette16(CRGB::Black, CHSV(Scale[currentMode], 255U, 255U) , CHSV(Scale[currentMode] + 50, 255U, 255U) , CHSV(Scale[currentMode] + 50, 100, 255U));
     }
 
     for (uint8_t i = 0; i < (WIDTH / 8U); i++) {
@@ -421,12 +420,12 @@ void FireRoutine() {
   }
   for (uint8_t i = 0; i < WIDTH; i++) {
     for (uint8_t j = 0; j < HEIGHT; j++) {
-     if (Scale[currentMode] == 255)
+      if (Scale[currentMode] == 255)
         leds[XY(i, (HEIGHT - 1) - j)] = ColorFromPalette(WaterfallColors_p, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
       else if (Scale[currentMode] == 1)
         leds[XY(i, (HEIGHT - 1) - j)] = ColorFromPalette(HeatColors_p, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
       else
-      leds[XY(i, HEIGHT - 1U - j)] = ColorFromPalette(currentPalette, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
+        leds[XY(i, HEIGHT - 1U - j)] = ColorFromPalette(currentPalette, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
     }
   }
 
@@ -451,39 +450,41 @@ void FireRoutine() {
 
 byte selX;
 byte PosX[WIDTH];
-float PosY[WIDTH];
-bool sending,sendDirection;
+int PosY[WIDTH];
+bool sending, sendDirection;
 void sendVoxels() { // remade by me
   if (loadingFlag) {
     FastLED.clear();
     for (uint8_t i = 0; i < WIDTH; i++) {
       PosX[i] = i;
-      PosY[i] = (random(2) == 1) ? HEIGHT - 1 : 0;
+      PosY[i] = (random(2) == 1) ? (HEIGHT - 1)*10 : 0;
     }
     loadingFlag = false;
   }
+  FastLED.clear();
   for (uint8_t i = 0; i < WIDTH; i++) {
-    if(i == selX)
-    drawPixelXY(PosX[i], PosY[i], CHSV(Scale[currentMode], 255, 255));
+    if (i == selX)
+      drawPixelXY(PosX[i], PosY[i] / 10, CHSV(Scale[currentMode], 255, 255));
     else
-    leds[XY(PosX[i], PosY[i])] = CHSV(Scale[currentMode], 255, 255);
+      leds[XY(PosX[i], PosY[i] / 10)] = CHSV(Scale[currentMode], 255, 255);
     if (!sending) {
-      selX = random(0, WIDTH);
+      selX = random(0, WIDTH - 1);
       if (PosY[selX] == 0) {
+        
         sendDirection = 1;
-      } else if (PosY[selX] == HEIGHT - 1) {
+      } else if (PosY[selX] == (HEIGHT - 1) * 10) {
         sendDirection = 0;
       }
       sending = true;
     } else {
       if (sendDirection == 1) {
-        PosY[selX] += 0.02;
-        if (PosY[selX] >= HEIGHT - 1) {
-          PosY[selX] = HEIGHT - 1;
+        PosY[selX] += 1;
+        if (PosY[selX] >= (HEIGHT - 1) * 10) {
+          PosY[selX] = (HEIGHT - 1) * 10;
           sending = false;
         }
       } else {
-        PosY[selX] -= 0.02;
+        PosY[selX] -= 1;
         if (PosY[selX] <= 0) {
           PosY[selX] = 0;
           sending = false;
@@ -497,16 +498,16 @@ void sendVoxels() { // remade by me
 // ----------------------- КИПЕНИЕ --------------------
 // (c) SottNick
 //по мотивам LDIRKO Ленд - эффект номер 10
-//...ldir... Yaroslaw Turbin, 18.11.2020 
+//...ldir... Yaroslaw Turbin, 18.11.2020
 //https://vk.com/ldirko
 //https://www.reddit.com/user/ldirko/
 
-void LLandRoutine(){
+void LLandRoutine() {
   if (loadingFlag) {
     loadingFlag = false;
     setCurrentPalette(palette);
     //speedfactor = fmap(Speed[currentMode], 1., 255., 20., 1.) / 16.;
-    deltaValue = 10U * ((Scale[currentMode] - 1U) % 11U + 1U);// значения от 1 до 11 
+    deltaValue = 10U * ((Scale[currentMode] - 1U) % 11U + 1U);// значения от 1 до 11
     // значения от 0 до 10 = ((Scale[currentMode] - 1U) % 11U)
 
   }
@@ -515,30 +516,34 @@ void LLandRoutine(){
     hue++;
   //float t = (float)millis() / speedfactor;
   ff_y += 16U;
-  
+
   for (uint8_t y = 0; y < HEIGHT; y++)
     for (uint16_t x = 0; x < WIDTH; x++)
       //drawPixelXY(x, y, ColorFromPalette (*curPalette, map(inoise8(x * 50, y * 50 - t, 0) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
       drawPixelXY(x, y, ColorFromPalette (*curPalette, map(inoise8(x * deltaValue, y * deltaValue - ff_y, ff_z) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
-  ff_z++;      
+  ff_z++;
 }
 
 void FillNoise(bool ShiftX, bool ShiftY, bool ShiftZ, CRGBPalette16 palette, bool ShiftHue, bool BriNoise) {
- double t = (millis() / (map(Speed, 1, 255, 60, 0)));
+  double t = (millis() / (map(Speed, 1, 255, 60, 0)));
   for (byte x = 0; x < WIDTH; x++) {
     for (byte y = 0; y < HEIGHT; y++) {
       uint8_t noise = inoise8((x * Scale[currentMode]) + ((ShiftX) ? t : t / 8), (y * Scale[currentMode]) + ((ShiftY) ? t : t / 16), ((ShiftZ) ? t : 0));
       uint8_t Inoise = inoise8((y * Scale[currentMode]) + ((ShiftY) ? t : t / 16), (x * Scale[currentMode]) + ((ShiftX) ? t : t / 8), ((ShiftZ) ? t : 0));
-      leds[XY(x, y)] = ColorFromPalette(palette, noise + hue,(!BriNoise || Inoise > 127)? 255 : dim8_raw(Inoise * 2));
+      leds[XY(x, y)] = ColorFromPalette(palette, noise + hue, (!BriNoise || Inoise > 127) ? 255 : dim8_raw(Inoise * 2));
     }
   }
-  if (ShiftHue) { hue++; } else { hue = 0; }
+  if (ShiftHue) {
+    hue++;
+  } else {
+    hue = 0;
+  }
 }
 
-void Noise3D(){
-if (loadingFlag)
+void Noise3D() {
+  if (loadingFlag)
   { setCurrentPalette(palette);
     loadingFlag = false;
   }
-  FillNoise(0,0,1,*curPalette,(palette ==0 || palette == 7 || palette == 8)? 1 : 0,1);
+  FillNoise(0, 0, 1, *curPalette, (palette == 0 || palette == 7 || palette == 8) ? 1 : 0, 1);
 }
