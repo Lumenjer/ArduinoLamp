@@ -46,7 +46,11 @@ void setup() {
       Scale[x] = EEPROM.read(x * 3 + 13);
     }
   }
+  #if defined(MOSFET_PIN) && defined(MOSFET_LEVEL)          // установка сигнала в пин, управляющий MOSFET транзистором, соответственно состоянию вкл/выкл матрицы
+  digitalWrite(MOSFET_PIN, ONflag ? MOSFET_LEVEL : !MOSFET_LEVEL);
+#endif
 }
+
 void loop() {
   effectsTick();
   controlTick();

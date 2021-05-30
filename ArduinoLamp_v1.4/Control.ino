@@ -134,8 +134,8 @@ void parsing() {
             isDemo = !isDemo;
             DemTimer = 0;
             break;
-          case 4: runningFlag = true; break;
-          case 5: runningFlag = false; break;
+          case 4: loadingFlag = true; runningFlag = true; break;
+          case 5: loadingFlag = true; runningFlag = false; break;
           case 6:  SaveSettings();
             break;
         }
