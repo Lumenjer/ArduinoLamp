@@ -20,7 +20,7 @@ void effectsTick() {
       case 10: stormRoutine();                break;
       case 11: ballRoutine();                 break;
       case 12: ballsRoutine();                break;
-      case 13: LLandRoutine();                break;
+      case 13: Nexus();                       break;
     }
     if (runningFlag) fillString(runningText, COL);
 #ifdef INDICATOR

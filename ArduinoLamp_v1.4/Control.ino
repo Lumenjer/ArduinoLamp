@@ -43,6 +43,9 @@ void NextEffect() {
   loadingFlag = true;
   memset8( leds, 0, NUM_LEDS * 3);
   delay(1);
+#ifdef USE_BT
+  debugPrint();
+#endif
 }
 
 void PrevEffect() {
@@ -51,6 +54,9 @@ void PrevEffect() {
   loadingFlag = true;
   memset8( leds, 0, NUM_LEDS * 3);
   delay(1);
+#ifdef USE_BT
+  debugPrint();
+#endif
 }
 
 void GoToEffect(byte Mode) {
@@ -59,6 +65,9 @@ void GoToEffect(byte Mode) {
   loadingFlag = true;
   memset8( leds, 0, NUM_LEDS * 3);
   delay(1);
+#ifdef USE_BT
+  debugPrint();
+#endif
 }
 
 void SaveSettings() {
@@ -94,6 +103,12 @@ boolean runningFlag;
 byte parse_index;
 String string_convert = "";
 enum modes {NORMAL, TEXT} parseMode;
+void debugPrint() {
+  Serial.print("0" + String(currentMode) + ";");
+  Serial.print("1" + String(Brightness[currentMode]) + ";");
+  Serial.print("2" + String(Speed[currentMode]) + ";");
+  Serial.print("3" + String(Scale[currentMode]) + ";");
+}
 
 String runningText;
 
@@ -121,7 +136,7 @@ void parsing() {
             break;
           case 4: loadingFlag = true; runningFlag = true; break;
           case 5: loadingFlag = true; runningFlag = false; break;
-          case 6:  SaveSettings();
+          case 6: SaveSettings();
             break;
         }
       case 2:
@@ -136,7 +151,6 @@ void parsing() {
       case 4:
         loadingFlag = true;
         Scale[currentMode] = intData[1];
-
         break;
       case 5:
         loadingFlag = true;
@@ -148,6 +162,9 @@ void parsing() {
       case 7:
         loadingFlag = true;
         //DEMOTIME = intData[1];
+        break;
+      case 8:
+        GoToEffect(intData[1]);
         break;
     }
   }
@@ -283,20 +300,7 @@ CHashIR IRLremote;
 uint32_t IRdata;
 boolean ir_flag = false;
 
-void debugPrint() {
-#ifdef DEBUG
-  Serial.print(F(" brightness:"));
-  Serial.print(Brightness[currentMode]);
-  Serial.print(F(" speed:"));
-  Serial.print(Speed[currentMode]);
-  Serial.print(F(" scale:"));
-  Serial.print(Scale[currentMode]);
-  Serial.print(F("mode:"));
-  Serial.print(currentMode);
-#else
-  return;
-#endif
-}
+
 
 void IRTick() {
   if (IRLremote.available())  {

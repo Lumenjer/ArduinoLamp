@@ -60,8 +60,6 @@ void fillString(String text, uint32_t color) {
     fullTextFlag = false;
   }
 
-  if (millis() - effTimer >= (256 - Speed[currentMode])) {
-    effTimer = millis();
     //FastLED.clear();
     byte i = 0, j = 0;
     while (text[i] != '\0') {
@@ -72,5 +70,4 @@ void fillString(String text, uint32_t color) {
         i++;
         j++;
       }
-    }
     fullTextFlag = false;}}

@@ -13,11 +13,11 @@
 // --------------------------------- Fire (New) ----------- ---------------------
 #define F_SCALE (10U) // fire scale
 // ======================== VARIABLES =============================
-uint8_t step; // какой-нибудь счётчик кадров или постедовательностей операций
+uint8_t step;
 uint8_t shiftValue[HEIGHT];
 uint8_t shiftHue[HEIGHT];
-uint8_t deltaHue, deltaHue2; // ещё пара таких же, когда нужно много
-uint8_t deltaValue; // просто повторно используемая переменная
+uint8_t deltaHue, deltaHue2;
+uint8_t deltaValue;
 byte hue, hue2;
 CRGB _pulse_color;
 CRGBPalette16 currentPalette(PartyColors_p);
@@ -40,11 +40,12 @@ void setCurrentPalette(uint8_t palIdx) {
   curPalette = palette_arr[palIdx];
 }
 
-#define LIGHTERS_AM ((WIDTH+HEIGHT)/4)
-int16_t lightersPos[2][LIGHTERS_AM];
-int8_t lightersSpeed[2][LIGHTERS_AM];
-byte lightersColor[LIGHTERS_AM];
-byte lightersBright[LIGHTERS_AM];
+#define LIGHTERS_AM (max(WIDTH, HEIGHT))
+struct {
+  int16_t PosX, PosY;
+  int8_t SpeedX, SpeedY;
+  uint8_t Color;
+} Dot[LIGHTERS_AM];
 // ========================== КОДЫ ЭФФЕКТОВ ===========================
 // ---------------------------- КОНФЕТТИ ------------------------------
 void sparklesRoutine()
@@ -244,24 +245,24 @@ void whiteLampRoutine()
 void stormRoutine() {
   // заполняем головами комет левую и верхнюю линию
   for (byte i = HEIGHT / 2; i < HEIGHT; i++) {
-    if (getPixColorXY(0, i) == 0
+    if (leds[XY(0, i)].r == 0
         && (random(0, SNOW_DENSE) == 0)
-        && getPixColorXY(0, i + 1) == 0
-        && getPixColorXY(0, i - 1) == 0)
-      leds[getPixelNumber(0, i)] = CHSV(random(0, 200), Scale[currentMode], 255);
+        && leds[XY(0, i + 1)].r == 0
+        && leds[XY(0, i - 1)].r == 0)
+      leds[XY(0, i)] = CHSV(random(0, 200), Scale[currentMode], 255);
   }
   for (byte i = 0; i < WIDTH / 2; i++) {
-    if (getPixColorXY(i, HEIGHT - 1) == 0
+    if (leds[XY(i, HEIGHT - 1)].r == 0
         && (random(0, SNOW_DENSE) == 0)
-        && getPixColorXY(i + 1, HEIGHT - 1) == 0
-        && getPixColorXY(i - 1, HEIGHT - 1) == 0)
-      leds[getPixelNumber(i, HEIGHT - 1)] = CHSV(random(0, 200), Scale[currentMode], 255);
+        && leds[XY(i + 1, HEIGHT - 1)].r == 0
+        && leds[XY(i - 1, HEIGHT - 1)].r == 0)
+      leds[XY(i, HEIGHT - 1)] = CHSV(random(0, 200), Scale[currentMode], 255);
   }
 
   // сдвигаем по диагонали
   for (byte y = 0; y < HEIGHT - 1; y++) {
     for (byte x = WIDTH - 1; x > 0; x--) {
-      drawPixelXY(x, y, getPixColorXY(x - 1, y + 1));
+      drawPixelXY(x, y, leds[XY(x - 1, y + 1)]);
     }
   }
 
@@ -284,13 +285,14 @@ void ballRoutine()
     loadingFlag = false;
     //FastLED.clear();
 
-    for (uint8_t i = 0U; i < 2U; i++)
-    {
-      lightersPos[i][0] = WIDTH / 2 * 10;
-      lightersSpeed[i][0] = random(4, 10);
-    }
+
+      Dot[0].PosX = WIDTH / 2 * 10;
+      Dot[0].PosY = HEIGHT / 2 * 10;
+      Dot[0].SpeedX = random(4, 10);
+      Dot[0].SpeedY = random(4, 10);
+
     deltaValue = map(Scale[currentMode], 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 2));
-    lightersColor[0] = random(0, 9) * 28;
+    Dot[0].Color = random(0, 9) * 28;
     //    _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
   }
 
@@ -304,31 +306,39 @@ void ballRoutine()
   if ((Scale[currentMode] & 0x01))
     for (uint8_t i = 0U; i < deltaValue; i++)
       for (uint8_t j = 0U; j < deltaValue; j++)
-        leds[XY(lightersPos[0][0] / 10 + i, lightersPos[1][0] / 10 + j)] = _pulse_color;
+        leds[XY(Dot[0].PosX / 10 + i, Dot[0].PosY / 10 + j)] = _pulse_color;
 
-  for (uint8_t i = 0U; i < 2U; i++)
+
+  Dot[0].PosX += Dot[0].SpeedX;
+
+  if (Dot[0].PosX < 0)
   {
-    lightersPos[i][0] += lightersSpeed[i][0];
-    if (lightersPos[i][0] < 0)
-    {
-      lightersPos[i][0] = 0;
-      lightersSpeed[i][0] = -lightersSpeed[i][0];
-      if (RANDOM_COLOR) lightersColor[0] = random(0, 9) * 28; // if (RANDOM_COLOR && (Scale[currentMode] & 0x01))
-      //vectorB[i] += random(0, 6) - 3;
-    }
+    Dot[0].PosX = 0;
+    Dot[0].SpeedX = -Dot[0].SpeedX;
+    if (RANDOM_COLOR) Dot[0].Color = random(0, 9) * 28; // if (RANDOM_COLOR && (Scale[currentMode] & 0x01))
+    //vectorB[i] += random(0, 6) - 3;
   }
-  if (lightersPos[0][0] > (int16_t)((WIDTH - deltaValue) * 10))
+  Dot[0].PosY += Dot[0].SpeedY;
+  if (Dot[0].PosY < 0)
   {
-    lightersPos[0][0] = (WIDTH - deltaValue) * 10;
-    lightersSpeed[0][0] = -lightersSpeed[0][0];
-    if (RANDOM_COLOR) lightersColor[0] = random(0, 9) * 28;
+    Dot[0].PosY = 0;
+    Dot[0].SpeedY = -Dot[0].SpeedY;
+    if (RANDOM_COLOR) Dot[0].Color = random(0, 9) * 28; // if (RANDOM_COLOR && (Scale[currentMode] & 0x01))
+    //vectorB[i] += random(0, 6) - 3;
+  }
+
+  if (Dot[0].PosX > (int16_t)((WIDTH - deltaValue) * 10))
+  {
+    Dot[0].PosX = (WIDTH - deltaValue) * 10;
+    Dot[0].SpeedX = -Dot[0].SpeedX;
+    if (RANDOM_COLOR) Dot[0].Color = random(0, 9) * 28;
     //vectorB[0] += random(0, 6) - 3;
   }
-  if (lightersPos[1][0] > (int16_t)((HEIGHT - deltaValue) * 10))
+  if (Dot[0].PosY > (int16_t)((HEIGHT - deltaValue) * 10))
   {
-    lightersPos[1][0] = (HEIGHT - deltaValue) * 10;
-    lightersSpeed[1][0] = -lightersSpeed[1][0];
-    if (RANDOM_COLOR) lightersColor[0] = random(0, 9) * 28;
+    Dot[0].PosY = (HEIGHT - deltaValue) * 10;
+    Dot[0].SpeedY = -Dot[0].SpeedY;
+    if (RANDOM_COLOR) Dot[0].Color = random(0, 9) * 28;
     //vectorB[1] += random(0, 6) - 3;
   }
 
@@ -340,7 +350,7 @@ void ballRoutine()
 
   for (uint8_t i = 0U; i < deltaValue; i++)
     for (uint8_t j = 0U; j < deltaValue; j++)
-      drawPixelXY(lightersPos[0][0] / 10 + i, lightersPos[1][0] / 10 + j, CHSV(lightersColor[0], 255, 255));
+      drawPixelXY(Dot[0].PosX / 10 + i, Dot[0].PosY / 10 + j, CHSV(Dot[0].Color, 255, 255));
 }
 // ------------------------- СВЕТЛЯЧКИ СО ШЛЕЙФОМ ------------------
 void ballsRoutine()
@@ -349,49 +359,52 @@ void ballsRoutine()
   {
     loadingFlag = false;
 
-    for (uint8_t j = 0U; j < (WIDTH + HEIGHT) / 4; j++)
+    for (uint8_t j = 0U; j < LIGHTERS_AM; j++)
     {
       int8_t sign;
       // забиваем случайными данными
-      lightersPos[0][j] = WIDTH / 2 * 10;
+      Dot[j].PosX = WIDTH / 2 * 10;
       random(0, 2) ? sign = 1 : sign = -1;
-      lightersSpeed[0][j] = random(4, 15) * sign;
-      lightersPos[1][j] = HEIGHT / 2 * 10;
+      Dot[j].SpeedX = random(4, 15) * sign;
+      Dot[j].PosY = HEIGHT / 2 * 10;
       random(0, 2) ? sign = 1 : sign = -1;
-      lightersSpeed[1][j] = random(4, 15) * sign;
+      Dot[j].SpeedY = random(4, 15) * sign;
       //ballColors[j] = CHSV(random(0, 9) * 28, 255U, 255U);
       // цвет зависит от масштаба
-      lightersColor[j] = (Scale[currentMode] * (j + 1)) % 256U;
+      Dot[j].Color = random();
     }
   }
 
   dimAll(256U - TRACK_STEP);
 
   // движение шариков
-  for (uint8_t j = 0U; j < map(Scale[currentMode], 1, 255, 1, (WIDTH + HEIGHT) / 4); j++)
+  for (uint8_t j = 0U; j < map(Scale[currentMode], 1, 255, 1, LIGHTERS_AM); j++)
   {
-    // движение шариков
-    for (uint8_t i = 0U; i < 2U; i++)
+
+    Dot[j].PosX += Dot[j].SpeedX;
+    Dot[j].PosY += Dot[j].SpeedY;
+    if (Dot[j].PosX < 0)
     {
-      lightersPos[i][j] += lightersSpeed[i][j];
-      if (lightersPos[i][j] < 0)
-      {
-        lightersPos[i][j] = 0;
-        lightersSpeed[i][j] = -lightersSpeed[i][j];
-      }
+      Dot[j].PosX = 0;
+      Dot[j].SpeedX = -Dot[j].SpeedX;
+    }
+    if (Dot[j].PosY < 0)
+    {
+      Dot[j].PosY = 0;
+      Dot[j].SpeedY = -Dot[j].SpeedY;
     }
 
-    if (lightersPos[0][j] > (int16_t)((WIDTH - 1) * 10))
+    if (Dot[j].PosX > (int16_t)((WIDTH - 1) * 10))
     {
-      lightersPos[0][j] = (WIDTH - 1) * 10;
-      lightersSpeed[0][j] = -lightersSpeed[0][j];
+      Dot[j].PosX = (WIDTH - 1) * 10;
+      Dot[j].SpeedX = -Dot[j].SpeedY;
     }
-    if (lightersPos[1][j] > (int16_t)((HEIGHT - 1) * 10))
+    if (Dot[j].PosY > (int16_t)((HEIGHT - 1) * 10))
     {
-      lightersPos[1][j] = (HEIGHT - 1) * 10;
-      lightersSpeed[1][j] = -lightersSpeed[1][j];
+      Dot[j].PosY = (HEIGHT - 1) * 10;
+      Dot[j].SpeedY = -Dot[j].SpeedY;
     }
-    drawPixelXY(lightersPos[0][j] / 10, lightersPos[1][j] / 10, CHSV(lightersColor[j], 255, 255));
+    drawPixelXY(Dot[j].PosX / 10, Dot[j].PosY / 10, CHSV(Dot[j].Color, 255, 255));
   }
 }
 
@@ -413,9 +426,9 @@ void FireRoutine() {
       currentPalette = CRGBPalette16(CRGB::Black, CHSV(Scale[currentMode], 255U, 255U) , CHSV(Scale[currentMode] + 50, 255U, 255U) , CHSV(Scale[currentMode] + 50, 100, 255U));
     }
 
-    for (uint8_t i = 0; i < (WIDTH / 8U); i++) {
-      lightersSpeed[1][i] = random8(HEIGHT);
-      lightersSpeed[0][i] = random8(WIDTH);
+    for (uint8_t i = 0; i < (WIDTH / 8); i++) {
+      Dot[i].PosY = random8(HEIGHT);
+      Dot[i].PosX = random8(WIDTH);
     }
   }
   for (uint8_t i = 0; i < WIDTH; i++) {
@@ -425,23 +438,23 @@ void FireRoutine() {
       else if (Scale[currentMode] == 1)
         leds[XY(i, (HEIGHT - 1) - j)] = ColorFromPalette(HeatColors_p, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
       else
-        leds[XY(i, HEIGHT - 1U - j)] = ColorFromPalette(currentPalette, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
+        leds[XY(i, HEIGHT - 1 - j)] = ColorFromPalette(currentPalette, qsub8(inoise8(i * deltaValue, (j + ff_y + random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
     }
   }
 
   //вставляем искорки из отдельного массива
-  for (uint8_t i = 0; i < (WIDTH / 8U); i++) {
-    if (lightersSpeed[1][i] > 3U) {
-      leds[XY(lightersSpeed[0][i], lightersSpeed[1][i])] = leds[XY(lightersSpeed[0][i], 3U)];
-      leds[XY(lightersSpeed[0][i], lightersSpeed[1][i])].fadeToBlackBy( lightersSpeed[1][i] * 2U );
+  for (uint8_t i = 0; i < (WIDTH / 8); i++) {
+    if (Dot[i].PosY > 3U) {
+      leds[XY(Dot[i].PosX, Dot[i].PosY)] = leds[XY(Dot[i].PosY, 3U)];
+      leds[XY(Dot[i].PosX, Dot[i].PosY)].fadeToBlackBy(Dot[i].PosY * 2U );
     }
-    lightersSpeed[1][i]++;
-    if (lightersSpeed[1][i] >= HEIGHT) {
-      lightersSpeed[1][i] = random8(4U);
-      lightersSpeed[0][i] = random8(WIDTH);
+    Dot[i].PosY++;
+    if (Dot[i].PosY >= HEIGHT) {
+      Dot[i].PosY = random8(4U);
+      Dot[i].PosX = random8(WIDTH);
     }
     if (!random8(step))
-      lightersSpeed[0][i] = (WIDTH + lightersSpeed[0][i] + 1U - random8(3U)) % WIDTH;
+      Dot[i].PosX = (WIDTH + Dot[i].PosX + 1U - random8(3U)) % WIDTH;
   }
   ff_y++;
   if (ff_y & 0x01)
@@ -449,44 +462,39 @@ void FireRoutine() {
 }
 
 byte selX;
-byte PosX[WIDTH];
-int PosY[WIDTH];
 bool sending, sendDirection;
 void sendVoxels() { // remade by me
   if (loadingFlag) {
     FastLED.clear();
     for (uint8_t i = 0; i < WIDTH; i++) {
-      PosX[i] = i;
-      PosY[i] = (random(2) == 1) ? (HEIGHT - 1)*10 : 0;
+      Dot[i].PosX = i;
+      Dot[i].PosY = (random(2) == 1) ? (HEIGHT - 1) * 10 : 0;
     }
     loadingFlag = false;
   }
   FastLED.clear();
   for (uint8_t i = 0; i < WIDTH; i++) {
-    if (i == selX)
-      drawPixelXY(PosX[i], PosY[i] / 10, CHSV(Scale[currentMode], 255, 255));
-    else
-      leds[XY(PosX[i], PosY[i] / 10)] = CHSV(Scale[currentMode], 255, 255);
+    drawPixelXY(Dot[i].PosX, Dot[i].PosY / 10, CHSV(Scale[currentMode], 255, 255));
     if (!sending) {
       selX = random(0, WIDTH - 1);
-      if (PosY[selX] == 0) {
-        
+      if (Dot[selX].PosY == 0) {
+
         sendDirection = 1;
-      } else if (PosY[selX] == (HEIGHT - 1) * 10) {
+      } else if (Dot[selX].PosY == (HEIGHT - 1) * 10) {
         sendDirection = 0;
       }
       sending = true;
     } else {
       if (sendDirection == 1) {
-        PosY[selX] += 1;
-        if (PosY[selX] >= (HEIGHT - 1) * 10) {
-          PosY[selX] = (HEIGHT - 1) * 10;
+        Dot[selX].PosY += 1;
+        if (Dot[selX].PosY >= (HEIGHT - 1) * 10) {
+          Dot[selX].PosY = (HEIGHT - 1) * 10;
           sending = false;
         }
       } else {
-        PosY[selX] -= 1;
-        if (PosY[selX] <= 0) {
-          PosY[selX] = 0;
+        Dot[selX].PosY -= 1;
+        if (Dot[selX].PosY <= 0) {
+          Dot[selX].PosY = 0;
           sending = false;
         }
       }
@@ -494,50 +502,95 @@ void sendVoxels() { // remade by me
   }
 }
 
-
-// ----------------------- КИПЕНИЕ --------------------
-// (c) SottNick
-//по мотивам LDIRKO Ленд - эффект номер 10
-//...ldir... Yaroslaw Turbin, 18.11.2020
-//https://vk.com/ldirko
-//https://www.reddit.com/user/ldirko/
-
-void LLandRoutine() {
-  if (loadingFlag) {
-    loadingFlag = false;
-    setCurrentPalette(palette);
-    //speedfactor = fmap(Speed[currentMode], 1., 255., 20., 1.) / 16.;
-    deltaValue = 10U * ((Scale[currentMode] - 1U) % 11U + 1U);// значения от 1 до 11
-    // значения от 0 до 10 = ((Scale[currentMode] - 1U) % 11U)
-
+void N_Dot_Reload(byte id) {
+  Dot[id].SpeedY = random(0, 4); //Direction
+  Dot[id].Color = random();
+  switch (Dot[id].SpeedY) {
+    case 0:   // вверх
+      Dot[id].PosX = random(0, (WIDTH - 1) * 10); // Разбрасываем капли по ширине
+      Dot[id].PosY = 0;  // и по высоте
+      break;
+    case 1:   //  вниз
+      Dot[id].PosX = random(0, (WIDTH - 1) * 10); // Разбрасываем капли по ширине
+      Dot[id].PosY = (HEIGHT - 1) * 10; // и по высоте
+      break;
+    case 2:   // вправо
+      Dot[id].PosX = 0; // Разбрасываем капли по ширине
+      Dot[id].PosY = random(0, (HEIGHT - 1) * 10); // и по высоте
+      break;
+    case 3:   // влево
+      Dot[id].PosX = (WIDTH - 1) * 10; // Разбрасываем капли по ширине
+      Dot[id].PosY = random(0, (HEIGHT - 1) * 10); // и по высоте
+      break;
+    default:
+      break;
   }
-  hue2 += 32U;
-  if (hue2 < 32U)
-    hue++;
-  //float t = (float)millis() / speedfactor;
-  ff_y += 16U;
-
-  for (uint8_t y = 0; y < HEIGHT; y++)
-    for (uint16_t x = 0; x < WIDTH; x++)
-      //drawPixelXY(x, y, ColorFromPalette (*curPalette, map(inoise8(x * 50, y * 50 - t, 0) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
-      drawPixelXY(x, y, ColorFromPalette (*curPalette, map(inoise8(x * deltaValue, y * deltaValue - ff_y, ff_z) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
-  ff_z++;
 }
 
+void Nexus() {
+  if (loadingFlag) {
+    setCurrentPalette(palette);
+    for (byte i = 0; i < LIGHTERS_AM; i++) {
+      N_Dot_Reload(i);
+    }
+    loadingFlag = false;
+  }
+  fadeToBlackBy(leds, NUM_LEDS, 11);
+  for (byte i = 0; i < map(Scale[currentMode], 1, 255, 1, LIGHTERS_AM); i++) {
+    switch (Dot[i].SpeedY)
+    {
+      case 0:   // вверх
+        Dot[i].PosY += 2;
+        break;
+      case 1:   //  вниз
+        Dot[i].PosY -= 2;
+        break;
+      case 2:   // вправо
+        Dot[i].PosX += 2;
+        break;
+      case 3:   // влево
+        Dot[i].PosX -= 2;
+        break;
+      default:
+        break;
+    }
+
+    // Обеспечиваем бесшовность по Y. И переносим каплю в начало трека
+    if (Dot[i].PosY < 0) {
+      N_Dot_Reload(i);
+    }
+
+    if (Dot[i].PosY > (HEIGHT - 1) * 10) {
+      N_Dot_Reload(i);
+    }
+
+    // Обеспечиваем бесшовность по X.
+    if (Dot[i].PosX < 0) {
+      N_Dot_Reload(i);
+    }
+    if (Dot[i].PosX > (WIDTH - 1) * 10) {
+      N_Dot_Reload(i);
+    }
+    drawPixelXY(Dot[i].PosX / 10, Dot[i].PosY / 10, ColorFromPalette(*curPalette, Dot[i].Color));
+  }
+}
+
+
+//Noise3D
+int x, y, z;
+
 void FillNoise(bool ShiftX, bool ShiftY, bool ShiftZ, CRGBPalette16 palette, bool ShiftHue, bool BriNoise) {
-  double t = (millis() / (map(Speed, 1, 255, 60, 0)));
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = 0; y < HEIGHT; y++) {
-      uint8_t noise = inoise8((x * Scale[currentMode]) + ((ShiftX) ? t : t / 8), (y * Scale[currentMode]) + ((ShiftY) ? t : t / 16), ((ShiftZ) ? t : 0));
-      uint8_t Inoise = inoise8((y * Scale[currentMode]) + ((ShiftY) ? t : t / 16), (x * Scale[currentMode]) + ((ShiftX) ? t : t / 8), ((ShiftZ) ? t : 0));
-      leds[XY(x, y)] = ColorFromPalette(palette, noise + hue, (!BriNoise || Inoise > 127) ? 255 : dim8_raw(Inoise * 2));
+  z += (ShiftZ) ? Speed[currentMode] : 0;
+  x += (ShiftX) ? Speed[currentMode] : ((ShiftZ) ? Speed[currentMode] / 8 : 0); 
+  y -= (ShiftY) ? Speed[currentMode] : ((ShiftZ) ? Speed[currentMode] / 16 : 0);
+  for (uint8_t i = 0; i < WIDTH; i++) {
+    for (uint8_t j = 0; j < HEIGHT; j++) {
+      byte noise = inoise8((i * Scale[currentMode]) + x, (j * Scale[currentMode]) + y, z);
+      byte Inoise = inoise8((j * Scale[currentMode]) + y, (i * Scale[currentMode]) + x, z);
+      leds[XY(i, j)] = ColorFromPalette(palette, noise + hue,(!BriNoise || Inoise > 127)? 255 : dim8_raw(Inoise * 2));
     }
   }
-  if (ShiftHue) {
-    hue++;
-  } else {
-    hue = 0;
-  }
+  if (ShiftHue) { hue++; } else { hue = 0; }
 }
 
 void Noise3D() {
