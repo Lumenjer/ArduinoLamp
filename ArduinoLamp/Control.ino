@@ -2,17 +2,17 @@
 void changePower() {
   if (ONflag) {
     effectsTick();
-    for (int i = 0; i < Brightness[currentMode]; i += 8) {
+    for (int i = 0; i < Brightness; i += 8) {
       FastLED.setBrightness(i);
       delay(1);
       FastLED.show();
     }
-    FastLED.setBrightness(Brightness[currentMode]);
+    FastLED.setBrightness(Brightness);
     delay(2);
     FastLED.show();
   } else {
     effectsTick();
-    for (int i = Brightness[currentMode]; i > 8; i -= 8) {
+    for (int i = Brightness; i > 8; i -= 8) {
       FastLED.setBrightness(i);
       delay(1);
       FastLED.show();
@@ -26,6 +26,11 @@ void changePower() {
 #endif
 }
 
+void readSettings() {
+  Brightness = EEPROM.read(currentMode * 3 + 11);
+  Speed = EEPROM.read(currentMode * 3 + 12);
+  Scale = EEPROM.read(currentMode * 3 + 13);
+}
 
 void ONOFF() {
   if (ONflag) {
@@ -39,7 +44,8 @@ void ONOFF() {
 
 void NextEffect() {
   if (++currentMode >= MODE_AMOUNT) currentMode = 0;
-  FastLED.setBrightness(Brightness[currentMode]);
+  readSettings();
+  FastLED.setBrightness(Brightness);
   loadingFlag = true;
   memset8( leds, 0, NUM_LEDS * 3);
   delay(1);
@@ -50,7 +56,8 @@ void NextEffect() {
 
 void PrevEffect() {
   if (--currentMode < 0) currentMode = MODE_AMOUNT - 1;
-  FastLED.setBrightness(Brightness[currentMode]);
+  readSettings();
+  FastLED.setBrightness(Brightness);
   loadingFlag = true;
   memset8( leds, 0, NUM_LEDS * 3);
   delay(1);
@@ -61,7 +68,8 @@ void PrevEffect() {
 
 void GoToEffect(byte Mode) {
   currentMode = Mode;
-  FastLED.setBrightness(Brightness[currentMode]);
+  readSettings();
+  FastLED.setBrightness(Brightness);
   loadingFlag = true;
   memset8( leds, 0, NUM_LEDS * 3);
   delay(1);
@@ -73,11 +81,9 @@ void GoToEffect(byte Mode) {
 void SaveSettings() {
   if (EEPROM.read(0) != 102) EEPROM.write(0, 102);
   if (EEPROM.read(1) != currentMode) EEPROM.write(1, currentMode);  // запоминаем текущий эфект
-  for (byte x = 0; x < MODE_AMOUNT; x++) {                          // сохраняем настройки всех режимов
-    if (EEPROM.read(x * 3 + 11) != Brightness[x]) EEPROM.write(x * 3 + 11, Brightness[x]);
-    if (EEPROM.read(x * 3 + 12) != Speed[x]) EEPROM.write(x * 3 + 12, Speed[x]);
-    if (EEPROM.read(x * 3 + 13) != Scale[x]) EEPROM.write(x * 3 + 13, Scale[x]);
-  }
+  if (EEPROM.read(currentMode * 3 + 11) != Brightness) EEPROM.write(currentMode * 3 + 11, Brightness);
+  if (EEPROM.read(currentMode * 3 + 12) != Speed) EEPROM.write(currentMode * 3 + 12, Speed);
+  if (EEPROM.read(currentMode * 3 + 13) != Scale) EEPROM.write(currentMode * 3 + 13, Scale);
   ONOFF();
   delay(200);
   ONOFF();
@@ -103,15 +109,20 @@ boolean runningFlag;
 byte parse_index;
 String string_convert = "";
 enum modes {NORMAL, TEXT} parseMode;
+
+
+#ifdef USE_TEXT
+String runningText = "";
+#endif
+
+#ifdef USE_BT
+
 void debugPrint() {
-  Serial.print("0" + String(currentMode) + ";");
-  Serial.print("1" + String(Brightness[currentMode]) + ";");
-  Serial.print("2" + String(Speed[currentMode]) + ";");
-  Serial.print("3" + String(Scale[currentMode]) + ";");
+  Serial.print("0 " + String(currentMode) + ";");
+  Serial.print("1 " + String(Brightness) + ";");
+  Serial.print("2 " + String(Speed) + ";");
+  Serial.print("3 " + String(Scale) + ";");
 }
-
-String runningText;
-
 // ********************* ПРИНИМАЕМ ДАННЫЕ **********************
 void parsing() {
   // ****************** ОБРАБОТКА *****************
@@ -141,16 +152,16 @@ void parsing() {
         }
       case 2:
         loadingFlag = true;
-        Brightness[currentMode] = map(intData[1], 1, 255, 10, BRIGHTNESS);
-        FastLED.setBrightness(Brightness[currentMode]);
+        Brightness = map(intData[1], 1, 255, 10, BRIGHTNESS);
+        FastLED.setBrightness(Brightness);
         break;
       case 3:
-        Speed[currentMode] = intData[1];
+        Speed = intData[1];
         loadingFlag = true;
         break;
       case 4:
         loadingFlag = true;
-        Scale[currentMode] = intData[1];
+        Scale = intData[1];
         break;
       case 5:
         loadingFlag = true;
@@ -161,7 +172,7 @@ void parsing() {
         break;
       case 7:
         loadingFlag = true;
-        //DEMOTIME = intData[1];
+        DEMOTIME = intData[1];
         break;
       case 8:
         GoToEffect(intData[1]);
@@ -216,13 +227,13 @@ void BTTick() {
   if (!parseStarted) {                // на время принятия данных матрицу не обновляем!
   }
 }
-
+#endif
+boolean inDirection;
 //------------------------------------------------------------------------------
+#ifdef USE_BUTTON
 #include <GyverButtonOld.h>
 
 GButton touch(BUTTON_PIN, BUT_PULL , NORM_OPEN);
-
-boolean inDirection;
 
 void ButtonTick() {
   touch.tick();
@@ -274,14 +285,14 @@ void ButtonTick() {
       if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
       switch (numHold) {
         case 1:
-          Brightness[currentMode] = constrain(Brightness[currentMode] + (Brightness[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
+          Brightness = constrain(Brightness + (Brightness / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
           break;
         case 2:
-          Speed[currentMode] = constrain(Speed[currentMode] + (Speed[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          Speed = constrain(Speed + (Speed / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
           break;
 
         case 3:
-          Scale[currentMode] = constrain(Scale[currentMode] + (Scale[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+          Scale = constrain(Scale + (Scale / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
           break;
       }
     }
@@ -289,12 +300,14 @@ void ButtonTick() {
       numHold = 0;
       numHold_Timer = millis();
     }
-    FastLED.setBrightness(Brightness[currentMode]);
+    FastLED.setBrightness(Brightness);
   }
 }
+#endif
 
 // ----- IR REMOTE ----- from MusicColor v2 by AlexGyver
 //--------------------------------------------------------------------------------------
+#ifdef USE_IR
 #include <IRLremote.h>
 CHashIR IRLremote;
 uint32_t IRdata;
@@ -357,13 +370,13 @@ void IRTick() {
     if (numHold != 0) numHold_Timer = millis(); loadingFlag = true;
     switch (numHold) {
       case 1:
-        Brightness[currentMode] = constrain(Brightness[currentMode] + (Brightness[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
+        Brightness = constrain(Brightness + (Brightness / 25 + 1) * (inDirection * 2 - 1), 1 , BRIGHTNESS);
         break;
       case 2:
-        Speed[currentMode] = constrain(Speed[currentMode] + (Speed[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+        Speed = constrain(Speed + (Speed / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
         break;
       case 3:
-        Scale[currentMode] = constrain(Scale[currentMode] + (Scale[currentMode] / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
+        Scale = constrain(Scale + (Scale / 25 + 1) * (inDirection * 2 - 1), 1 , 255);
         break;
     }
   }
@@ -372,8 +385,9 @@ void IRTick() {
     numHold_Timer = millis();
   }
 
-  FastLED.setBrightness(Brightness[currentMode]);
+  FastLED.setBrightness(Brightness);
 }
+#endif
 
 void controlTick() {
 #ifdef USE_BUTTON

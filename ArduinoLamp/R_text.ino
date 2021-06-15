@@ -1,8 +1,10 @@
+uint32_t effTimer;
+#ifdef USE_TEXT
 // --------------------- ДЛЯ РАЗРАБОТЧИКОВ ----------------------
 #include "Font.h"
 int offset = WIDTH;
 bool fullTextFlag;
-uint32_t effTimer; byte ind;
+
 
 // интерпретатор кода символа в массиве fontHEX (для Arduino IDE 1.8.* и выше)
 uint8_t getFont(uint8_t font, uint8_t row) {
@@ -60,14 +62,17 @@ void fillString(String text, uint32_t color) {
     fullTextFlag = false;
   }
 
-    //FastLED.clear();
-    byte i = 0, j = 0;
-    while (text[i] != '\0') {
-      if ((byte)text[i] > 191) {    // работаем с русскими буквами!
-        i++;
-      } else {
-        drawLetter(j, text[i], offset + j * (LET_WIDTH + SPACE), color);
-        i++;
-        j++;
-      }
-    fullTextFlag = false;}}
+  //FastLED.clear();
+  byte i = 0, j = 0;
+  while (text[i] != '\0') {
+    if ((byte)text[i] > 191) {    // работаем с русскими буквами!
+      i++;
+    } else {
+      drawLetter(j, text[i], offset + j * (LET_WIDTH + SPACE), color);
+      i++;
+      j++;
+    }
+    fullTextFlag = false;
+  }
+}
+#endif
