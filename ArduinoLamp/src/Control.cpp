@@ -1,3 +1,12 @@
+#include "Control.h"
+
+bool isDemo = 0;
+uint8_t DEMOTIME = 20;
+byte Brightness = 20;
+byte Speed = 10;
+byte Scale = 10;
+byte currentMode = 10;
+bool runningFlag = 0;
 
 void changePower() {
   if (ONflag) {
@@ -104,7 +113,6 @@ void DeleteSettings() {
 
 byte intData[PARSE_AMOUNT];     // массив численных значений после парсинга
 boolean parseStarted;
-boolean runningFlag;
 
 byte parse_index;
 String string_convert = "";
@@ -215,7 +223,7 @@ void parsing() {
       string_convert = "";                    // очищаем строку
     }
     if (incomingByte == ending) {             // если таки приняли ; - конец парсинга
-      parseMode == NORMAL;
+      parseMode = NORMAL;
       parseStarted = false;                     // сброс
       recievedFlag = true;                    // флаг на принятие
     }

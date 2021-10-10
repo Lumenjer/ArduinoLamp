@@ -1,4 +1,4 @@
-uint32_t effTimer;
+#include "R_text.h"
 #ifdef USE_TEXT
 // --------------------- ДЛЯ РАЗРАБОТЧИКОВ ----------------------
 #include "Font.h"

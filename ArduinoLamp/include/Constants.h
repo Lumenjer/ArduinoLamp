@@ -1,4 +1,7 @@
-﻿// ============================== SETTINGS ==================================
+﻿#ifndef __CONSTANTS_H
+#define __CONSTANTS_H
+#include <Arduino.h>
+// ============================== SETTINGS ==================================
 // ---------------- MATRIX --------------
 //__________ BRIGHTNESS AND POWER ________
 #define BRIGHTNESS 200        // Brightness limit (0-255)
@@ -6,6 +9,7 @@
 //_____________________ SIZE _____________
 #define WIDTH 16
 #define HEIGHT 8
+#define NUM_LEDS WIDTH * HEIGHT
 //_____________________ COLOR ______________
 #define COLOR_ORDER GRB
 //_______________ TYPE AND DIRECTION ______
@@ -44,13 +48,13 @@
 //________________________________________
 
 // -------------------- DEMO ----------------
-bool isDemo = 0;                 // Demo from start
+extern bool isDemo;                 // Demo from start
 #define DEMOT 20                 // (sec) Demo time
 #define RANDOM_DEMO              // Random effect in demo
 //#define RANDOM_EFF             // Random settings in demo
 
 #ifdef USE_BT
-uint8_t DEMOTIME = 20;
+extern uint8_t DEMOTIME;
 #else
 #define DEMOTIME DEMOT
 #endif
@@ -61,9 +65,9 @@ uint8_t DEMOTIME = 20;
 #define IND_POS 4
 //-------------------- EFFECTS --------------
 #define MODE_AMOUNT 14
-byte Brightness = 20;
-byte Speed = 10;
-byte Scale = 10;
+extern byte Brightness;
+extern byte Speed;
+extern byte Scale;
 //--------------------RUNNING STRING --------
 #define USE_TEXT
 #define TEXT_DIRECTION 1
@@ -74,8 +78,9 @@ byte Scale = 10;
 #define LET_HEIGHT 8
 #define SPACE 1
 #define COL 2             // (0хRRGGBB/1- rainbow 2 - all different)
-byte currentMode = 10;
+extern byte currentMode;
 //-------------------- OTHER ---------------
 //#define DEBUG                // Not done
 //-------------------------------------------
 //===========================================
+#endif

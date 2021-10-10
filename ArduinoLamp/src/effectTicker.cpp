@@ -3,6 +3,8 @@
 // 2. Constants.h specifies the total number of MODE_AMOUNT.
 // 3. here in the file effectTicker.ino - the procedure of calling the effect of the case "number" is connected: "effect name"; break;
 // It is possible to connect the same effect under different numbers. But that's too much.
+#include "effectTicker.h"
+uint32_t effTimer;
 void effectsTick() {
   if (!recievedFlag && ONflag && millis() - effTimer >= ((currentMode < 4 || currentMode > 6) ? 256 - Speed : 50) ) {
     effTimer = millis(); switch (currentMode) {

@@ -1,39 +1,4 @@
-//Функции
-void dimAll(uint8_t value) {
-  fadeToBlackBy (leds, NUM_LEDS, 255U - value);
-}
-
-static float fmap(const float x, const float in_min, const float in_max, const float out_min, const float out_max) {
-  return (out_max - out_min) * (x - in_min) / (in_max - in_min) + out_min;
-}
-
-// залить все
-void fillAll(CRGB color) {
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = color;
-  }
-}
-// функция отрисовки точки по координатам X Y
-void drawPixelXY(uint8_t x, uint8_t y, CRGB color)
-{
-  if (x < 0 || x > (WIDTH - 1) || y < 0 || y > (HEIGHT - 1)) return;
-  uint32_t thisPixel = XY((uint8_t)x, (uint8_t)y) * SEGMENTS;
-    leds[thisPixel] = color;
-}
-
-// функция получения цвета пикселя по его номеру
-uint32_t getPixColor(uint32_t thisSegm)
-{
-  uint32_t thisPixel = thisSegm * SEGMENTS;
-  if (thisPixel > NUM_LEDS - 1) return 0;
-  return (((uint32_t)leds[thisPixel].r << 16) | ((uint32_t)leds[thisPixel].g << 8 ) | (uint32_t)leds[thisPixel].b);
-}
-// функция получения цвета пикселя в матрице по его координатам
-uint32_t getPixColorXY(uint8_t x, uint8_t y)
-{
-  return getPixColor(XY(x, y));
-}
-
+#include "utility.h"
 // =================== НАСТРОЙКА МАТРИЦЫ ==================
 #if (CONNECTION_ANGLE == 0 && STRIP_DIRECTION == 0)
 #define _WIDTH WIDTH
@@ -121,11 +86,50 @@ uint16_t XY(uint8_t x, uint8_t y)
     return (THIS_Y * _WIDTH + _WIDTH - THIS_X - 1);  // Odd rows run backwards
 }
 #endif
+
+// функция получения цвета пикселя по его номеру
+uint32_t getPixColor(uint32_t thisSegm)
+{
+  uint32_t thisPixel = thisSegm * SEGMENTS;
+  if (thisPixel > NUM_LEDS - 1) return 0;
+  return (((uint32_t)leds[thisPixel].r << 16) | ((uint32_t)leds[thisPixel].g << 8 ) | (uint32_t)leds[thisPixel].b);
+}
+// функция получения цвета пикселя в матрице по его координатам
+uint32_t getPixColorXY(uint8_t x, uint8_t y)
+{
+  return getPixColor(XY(x, y));
+}
+
+
 // оставлено для совместимости со эффектами из старых прошивок
 uint16_t getPixelNumber(uint8_t x, uint8_t y)
 {
   return XY(x, y);
 }
+
+void dimAll(uint8_t value) {
+  fadeToBlackBy (leds, NUM_LEDS, 255U - value);
+}
+
+static float fmap(const float x, const float in_min, const float in_max, const float out_min, const float out_max) {
+  return (out_max - out_min) * (x - in_min) / (in_max - in_min) + out_min;
+}
+
+// залить все
+void fillAll(CRGB color) {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = color;
+  }
+}
+// функция отрисовки точки по координатам X Y
+void drawPixelXY(uint8_t x, uint8_t y, CRGB color)
+{
+  if (x < 0 || x > (WIDTH - 1) || y < 0 || y > (HEIGHT - 1)) return;
+  uint32_t thisPixel = XY((uint8_t)x, (uint8_t)y) * SEGMENTS;
+    leds[thisPixel] = color;
+}
+
+
 //Субпиксель по Y
 void drawPixelXYF_Y(uint16_t x, float y, const CRGB &color)
   {

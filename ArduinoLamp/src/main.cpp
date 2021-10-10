@@ -9,12 +9,8 @@
   Author: AlexGyver, AlexGyver Technologies, 2019 (Ported to Arduino Norovl (+ effects, demo from Stepko)
   https://AlexGyver.ru/
 */
-// ----------------- LIBRARES -----------------
-#include <FastLED.h>
-#include <EEPROM.h>
-// ----------------- VARIABLES ------------------
-#include "Constants.h"
-#define NUM_LEDS WIDTH * HEIGHT
+#include "main.h"
+
 CRGB leds[NUM_LEDS];
 boolean loadingFlag = true;
 boolean ONflag = true;
@@ -26,6 +22,7 @@ uint32_t DemTimer = 0UL;
 //-------------------------------------------------------------
 // ----------- START ------------------
 static const byte maxDim = max(WIDTH, HEIGHT);
+// ----------- START ----------------- 
 void setup() {
   // STRIP
   FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(0xFFB0F0);
